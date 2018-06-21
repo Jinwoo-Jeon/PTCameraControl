@@ -24,7 +24,7 @@ using namespace cv;
 #endif
 
 String face_cascade_name = "haarcascade/haarcascade_profileface.xml";
-CascadeClassifier face_cascade; 
+CascadeClassifier face_cascade;  
 Ptr<Tracker> tracker;
 static Rect2d trackerBB;
 static bool selectObject = false;
@@ -753,8 +753,38 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			int vel_y = 0;
 			int vel = 0;
 			int centerMargin = 10;
-			Mat m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
-			cvtColor(m, m, COLOR_BayerGR2RGB);
+			Mat m;
+			if (cstrPixelFormat == _T("BayerGR8"))
+			{
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+				cvtColor(m, m, COLOR_BayerGR2RGB);
+			}
+			else if (cstrPixelFormat == _T("BayerGR12"))
+			{
+				//m = Mat(pData->GetHeight(), pData->GetWidth(), CV_16U, (uchar*)pData->GetBufferPtr()).clone();
+				//cvtColor(m, m, COLOR_BayerGR2RGB);
+				cv::Mat mat16uc1_bayer(pData->GetHeight(), pData->GetWidth(), CV_16UC1, (uchar*)pData->GetBufferPtr());
+
+				// Decode the Bayer data to RGB but keep using 16 bits per channel
+				cv::Mat mat16uc3_rgb(pData->GetWidth(), pData->GetHeight(), CV_16UC3);
+				cv::cvtColor(mat16uc1_bayer, mat16uc3_rgb, cv::COLOR_BayerGR2RGB);
+
+				// Convert the 16-bit per channel RGB image to 8-bit per channel
+				cv::Mat m(pData->GetWidth(), pData->GetHeight(), CV_8UC3);
+				mat16uc3_rgb.convertTo(m, CV_8UC3, 1.0 / 256);
+			}
+			else if (cstrPixelFormat == _T("YUV411Packed"))
+			{
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+			}
+			else if (cstrPixelFormat == _T("YUV422Packed"))
+			{
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+			}
+			else
+			{
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+			}
 			resize(m, m, Size(pData->GetWidth() / downScale, pData->GetHeight() / downScale), 0, 0, INTER_CUBIC);
 			Mat m_copy;
 			m.copyTo(m_copy);
@@ -866,17 +896,22 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		{
 			if (cstrPixelFormat.Left(5) == _T("Bayer"))
 			{
+				
 				_uint32_t nBufSize = pData->GetWidth() * pData->GetHeight() * 3;
 				_uint8_t* pnConvertData = new _uint8_t[nBufSize];
 				pDlg->m_pCamera->SetBayer(pnConvertData, nBufSize, pData, (ENeptuneBayerLayout)NEPTUNE_BAYER_GR_BG,
 				(ENeptuneBayerMethod)NEPTUNE_BAYER_METHOD_NEAREST, 0);
 				pDlg->m_pDraw->DrawConvertImage(pnConvertData, nBufSize, pData->GetWidth(),	pData->GetHeight());
 			}
-			else if (cstrPixelFormat.Left(5) == _T("YUV"))
+			else if (cstrPixelFormat.Left(3) == _T("YUV"))
 			{
+				/*
 				_uint32_t nRGBBuffer = pData->GetWidth() * pData->GetHeight() * 3;
 				_char_t* pRGBBuffer = new _char_t[nRGBBuffer];
 				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
+				pDlg->m_pDraw->DrawConvertImage(pRGBBuffer, nRGBBuffer, pData->GetWidth(), pData->GetHeight());
+				*/
+				pDlg->m_pDraw->DrawRawImage(pData);
 			}
 			else
 			{
