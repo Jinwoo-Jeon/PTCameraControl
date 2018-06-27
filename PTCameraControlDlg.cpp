@@ -1588,7 +1588,7 @@ void CPTCameraControlDlg::OnBnClickedButtonClose()
 void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focus 5:All
 {
 	UpdateData(TRUE);
-	ATLTRACE("Query Position\n");
+	ATLTRACE("Query Position %d\n",num);
 	BYTE ch[10] = { 0, };
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 
@@ -1706,17 +1706,28 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 	CString str = "";
 	BYTE aByte;													//데이터를 저장할 변수 
 
-	int iSize = (ptController.m_ComuPort.m_QueueRead).GetSize();				//포트로 들어온 데이터 갯수 //SetCommState에 설정된 내용 때문에 거의 8개씩 들어옴
+	int iSize = (ptController.m_ComuPort.m_QueueRead).GetSize();
 	ATLTRACE("OnCommunication %d\n", iSize);
+	result = "";
+	for (int i = 0; i < iSize; i++)
+	{
+		(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);
+		bPbyte[i] = aByte;
+
+		str.Format("%02X ", aByte);
+		m_iCount++;
+		result += str;
+	}
+	ATLTRACE("result " + result +"\n");
 	if (iSize < 7){
 		if (b_Pflg == FALSE){
-			for (int i = 0; i < iSize; i++)						//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
+			for (int i = 0; i < iSize; i++)
 			{
-				(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);		//큐에서 데이터 한개를 읽어옴
+				(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);	
 				bPbyte[i] = aByte;
 
 				str.Format("%02X ", aByte);
-				m_iCount++;										//데이터 갯수 세기
+				m_iCount++;										
 				result += str;
 			}
 			b_Pflg = TRUE;
@@ -2658,6 +2669,7 @@ void CPTCameraControlDlg::OnBnClickedButtonTiltstop()
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 {
+	ATLTRACE("-------------PTSTOP-------------\n");
 	ptController.PTMove(5);
 	OnQueryPosition(1);
 	Delay(100);

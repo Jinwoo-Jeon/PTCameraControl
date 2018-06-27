@@ -60,7 +60,7 @@ void PTController::PTMove(int dir, int speed)
 	}
 	ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
 
-	strCrc1.Format("%02X", ch[6]);
+	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
 
 	//m_EditCommunicationSend.SetSel(-1, 0);
