@@ -5,3 +5,5 @@ ipch
 Backup
 x64
 PTCameraControl.VC.VC.opendb
+bin
+enc_temp_folder

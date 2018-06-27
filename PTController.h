@@ -7,6 +7,7 @@ class PTController
 public:
 	CString		strAddress;
 	CCommThread m_ComuPort;
+	CEdit		m_EditCommunicationSend;
 
 	PTController();
 	~PTController();

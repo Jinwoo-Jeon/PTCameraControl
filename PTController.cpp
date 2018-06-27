@@ -60,13 +60,18 @@ void PTController::PTMove(int dir, int speed)
 	}
 	ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
 
-	strCrc1.Format("%01X", ch[6]);
+	strCrc1.Format("%02X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
+
+	//m_EditCommunicationSend.SetSel(-1, 0);
+	//m_EditCommunicationSend.ReplaceSel(str0 + " " + strAddress + " " + str2 + " " + str3 + " " + str4 + " " + str5 + " " + strCrc1 +"\n");
 	OnWriteComm(byGetDataT);
 }
 
 void PTController::OnWriteComm(CString str)
 {
+	m_EditCommunicationSend.SetSel(-1, 0);
+	m_EditCommunicationSend.ReplaceSel(str + "\n");
 	int bufPos = 0;
 	int datasize, bufsize, i, j;
 	BYTE *Send_buff, byHigh, byLow;

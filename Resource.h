@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++에서 생성한 포함 파일입니다.
-// PTCameraControl.rc에서 사용되고 있습니다.
+// Microsoft Visual C++ generated include file.
+// Used by PTCameraControl.rc
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -10,7 +10,7 @@
 #define IDS_GRID_LOAD_ERROR             104
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG1                     130
-#define IDD_FACE_DETECTION_DIALOG 132
+#define IDD_FACE_DETECTION_DIALOG       132
 #define IDC_COMBO_CAMERA                1000
 #define IDC_COMBO_PIXELFORMAT           1001
 #define IDC_COMBO_FRAMERATE             1002
@@ -42,14 +42,8 @@
 #define IDC_BUTTON_PTRIGHT              1028
 #define IDC_BUTTON_PTUP                 1029
 #define IDC_BUTTON_PTDOWN               1030
-//#define IDC_EDITING_REJECT_ATTEMPT      1031
-//#define IDC_EDIT_PTRANGEPARAM           1031
 #define IDC_BUTTON_PTLEFTUP             1031
-//#define IDC_EDITING_REJECT_CHANGE       1032
-//#define IDC_EDIT_PTPOSITIONPARAM        1032
 #define IDC_EDIT_PANPOSITIONPARAM       1032
-//#define IDC_CUSTOM1                     1033
-//#define IDC_BUTTON_PTSETZERO            1033
 #define IDC_BUTTON_PANSETZERO           1033
 #define IDC_COMBO_CAPTURE_FORMAT        1034
 #define IDC_EDIT_CAPTURE_PATH           1035
@@ -57,17 +51,16 @@
 #define IDC_BUTTON_CAPTURE_START        1037
 #define IDC_BUTTON_CAPTURE_STOP         1038
 #define IDC_STATIC_CAPTURE              1039
-//#define IDC_BUTTON_PTPOSITIONMOVE       1040
 #define IDC_BUTTON_PANPOSITIONMOVE      1040
 #define IDC_BUTTON_FOCUSFAR             1041
 #define IDC_BUTTON_FOCUSNEAR            1042
-//#define IDC_EDIT_PTRANGEPARAM2          1043
 #define IDC_BUTTON_PTRIGHTUP            1043
 #define IDC_EDIT_ZOOMPOSITIONPARAM      1044
 #define IDC_BUTTON_ZOOMZEROSET          1045
 #define IDC_BUTTON_ZOOMPOSITIONMOVE     1046
 #define IDC_EDIT_FOCUSPOSITIONPARAM     1047
 #define IDC_EDIT_COMMUNICATION          1048
+#define IDC_EDIT_COMMUNICATION_RECEIVE  1048
 #define IDC_BUTTON_FOCUSZEROSET         1049
 #define IDC_BUTTON_FOCUSPOSITIONMOVE    1050
 #define IDC_BUTTON_ZOOMSTOP             1051
@@ -80,6 +73,8 @@
 #define IDC_EDIT_PTSPEEDPARAM           1058
 #define IDC_BUTTON_PRESETGOTO           1059
 #define IDC_EDIT_ZFSPEEDPARAM           1060
+#define IDC_EDIT_COMMUNICATION2         1060
+#define IDC_EDIT_COMMUNICATION_SEND     1060
 #define IDC_BUTTON_ZFSPEEDSET           1061
 #define IDC_BUTTON_PTZFRESET            1062
 #define IDC_EDIT_PTPRESETPARAM          1063

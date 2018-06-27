@@ -81,7 +81,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	, m_nPTSpeed(0)
 	, m_nZoomSetPos(0)
 	, m_nFocusSetPos(0)
-	, m_strCommunication(_T(""))
+	, m_strCommunicationReceive(_T(""))
 	, m_nPresetID(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -165,8 +165,9 @@ void CPTCameraControlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_FOCUSPOSITIONPARAM, m_EditFocusPos);
 	DDX_Text(pDX, IDC_EDIT_FOCUSPOSITIONPARAM, m_nFocusSetPos);
 	//DDV_MinMaxInt(pDX, m_nFocusSetPos, 24, 992);
-	DDX_Control(pDX, IDC_EDIT_COMMUNICATION, m_EditCommunication);
-	DDX_Text(pDX, IDC_EDIT_COMMUNICATION, m_strCommunication);
+	DDX_Control(pDX, IDC_EDIT_COMMUNICATION_RECEIVE, m_EditCommunicationReceive);
+	DDX_Text(pDX, IDC_EDIT_COMMUNICATION_RECEIVE, m_strCommunicationReceive);
+	DDX_Control(pDX, IDC_EDIT_COMMUNICATION_SEND, ptController.m_EditCommunicationSend);
 	DDX_Control(pDX, IDC_EDIT_PTPRESETPARAM, m_EditPresetID);
 	DDX_Text(pDX, IDC_EDIT_PTPRESETPARAM, m_nPresetID);
 	//DDV_MinMaxInt(pDX, m_nPresetID, 0, 254);
@@ -1587,7 +1588,7 @@ void CPTCameraControlDlg::OnBnClickedButtonClose()
 void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focus 5:All
 {
 	UpdateData(TRUE);
-
+	ATLTRACE("Query Position\n");
 	BYTE ch[10] = { 0, };
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 
@@ -1706,7 +1707,7 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 	BYTE aByte;													//데이터를 저장할 변수 
 
 	int iSize = (ptController.m_ComuPort.m_QueueRead).GetSize();				//포트로 들어온 데이터 갯수 //SetCommState에 설정된 내용 때문에 거의 8개씩 들어옴
-
+	ATLTRACE("OnCommunication %d\n", iSize);
 	if (iSize < 7){
 		if (b_Pflg == FALSE){
 			for (int i = 0; i < iSize; i++)						//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
@@ -1738,16 +1739,17 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 
 			if (bPbyte[0] == 0xFF){
 				PelcoDComm(bPbyte);
-				m_EditCommunication.SetSel(-1, 0);
-				m_EditCommunication.ReplaceSel(result);
+				m_EditCommunicationReceive.SetSel(-1, 0);
+				m_EditCommunicationReceive.ReplaceSel(result);
 
 				result = "";
 			}
 			else{
-				m_EditCommunication.SetSel(-1, 0);
-				m_EditCommunication.ReplaceSel(result);
-				m_EditCommunication.ReplaceSel("Reset complete 1\n");
-				OnBnClickedButtonPtzfconfirmpos();
+				m_EditCommunicationReceive.SetSel(-1, 0);
+				m_EditCommunicationReceive.ReplaceSel(result);
+				ATLTRACE("Reset complete 1\n");
+				//m_EditCommunication.ReplaceSel("Reset complete 1\n");
+				//OnBnClickedButtonPtzfconfirmpos();
 				Clear();
 			}
 		}
@@ -1770,8 +1772,8 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 
 			if (bPbyte[0] == 0xFF){
 				PelcoDComm(bPbyte);
-				m_EditCommunication.SetSel(-1, 0);
-				m_EditCommunication.ReplaceSel(result);
+				m_EditCommunicationReceive.SetSel(-1, 0);
+				m_EditCommunicationReceive.ReplaceSel(result);
 
 				result = "";
 			}
@@ -1780,24 +1782,27 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 			}
 		}
 		else{
-			m_EditCommunication.SetSel(-1, 0);
-			m_EditCommunication.ReplaceSel(result);
-			m_EditCommunication.ReplaceSel("Reset complete 2\n");
-			OnBnClickedButtonPtzfconfirmpos();
+			m_EditCommunicationReceive.SetSel(-1, 0);
+			m_EditCommunicationReceive.ReplaceSel(result);
+			ATLTRACE("Reset complete 2\n");
+			//m_EditCommunication.ReplaceSel("Reset complete 2\n");
+			//OnBnClickedButtonPtzfconfirmpos();
 			Clear();
 		}
 	}
 	else if (iSize > 7 && iSize < 12){
-		m_EditCommunication.SetSel(-1, 0);
-		m_EditCommunication.ReplaceSel(result);
-		m_EditCommunication.ReplaceSel("Reset complete 3\n");
+		m_EditCommunicationReceive.SetSel(-1, 0);
+		m_EditCommunicationReceive.ReplaceSel(result);
+		ATLTRACE("Reset complete 3\n");
+		//m_EditCommunication.ReplaceSel("Reset complete 3\n");
 		Clear();
-		OnBnClickedButtonPtzfconfirmpos();
+		//OnBnClickedButtonPtzfconfirmpos();
 	}
 	else{
-		m_EditCommunication.SetSel(-1, 0);
-		m_EditCommunication.ReplaceSel(result);
-		m_EditCommunication.ReplaceSel("Communication Error\n");
+		m_EditCommunicationReceive.SetSel(-1, 0);
+		m_EditCommunicationReceive.ReplaceSel(result);
+		ATLTRACE("Communication Error\n");
+		//m_EditCommunication.ReplaceSel("Communication Error\n");
 		Clear();
 	}
 
@@ -1831,8 +1836,9 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditPanPos.ReplaceSel(str);
 				}
 				else{
-					m_EditCommunication.SetSel(-1, 0);
-					m_EditCommunication.ReplaceSel("Checksum Error\n");
+					//m_EditCommunication.SetSel(-1, 0);
+					//m_EditCommunication.ReplaceSel("Checksum Error\n");
+					ATLTRACE("Checksum Error\n");
 					Clear();
 				}
 			}
@@ -1850,8 +1856,9 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditTiltPos.ReplaceSel(str);
 				}
 				else{
-					m_EditCommunication.SetSel(-1, 0);
-					m_EditCommunication.ReplaceSel("Checksum Error\n");
+					ATLTRACE("Checksum Error\n");
+					//m_EditCommunication.SetSel(-1, 0);
+					//m_EditCommunication.ReplaceSel("Checksum Error\n");
 					Clear();
 				}
 			}
@@ -1869,8 +1876,9 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditZoomPos.ReplaceSel(str);
 				}
 				else{
-					m_EditCommunication.SetSel(-1, 0);
-					m_EditCommunication.ReplaceSel("Checksum Error\n");
+					ATLTRACE("Checksum Error\n");
+					//m_EditCommunication.SetSel(-1, 0);
+					//m_EditCommunication.ReplaceSel("Checksum Error\n");
 					Clear();
 				}
 			}
@@ -1888,8 +1896,9 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditFocusPos.ReplaceSel(str);
 				}
 				else{
-					m_EditCommunication.SetSel(-1, 0);
-					m_EditCommunication.ReplaceSel("Checksum Error\n");
+					ATLTRACE("Checksum Error\n");
+					//m_EditCommunication.SetSel(-1, 0);
+					//m_EditCommunication.ReplaceSel("Checksum Error\n");
 					Clear();
 				}
 			}
@@ -1898,14 +1907,16 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 			//}
 		}
 		else{
-			m_EditCommunication.SetSel(-1, 0);
-			m_EditCommunication.ReplaceSel("Camera Address Error\n");
+			ATLTRACE("Camera Address Error\n");
+			//m_EditCommunication.SetSel(-1, 0);
+			//m_EditCommunication.ReplaceSel("Camera Address Error\n");
 			Clear();
 		}
 	}
 	else{
-		m_EditCommunication.SetSel(-1, 0);
-		m_EditCommunication.ReplaceSel("Sync Error\n");
+		ATLTRACE("Sync Error\n");
+		//m_EditCommunication.SetSel(-1, 0);
+		//m_EditCommunication.ReplaceSel("Sync Error\n");
 		Clear();
 	}
 
