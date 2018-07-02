@@ -102,11 +102,11 @@ public:
 	CString		strAddress;
 	CEdit		m_EditCommunicationReceive;
 	CString		m_strCommunicationReceive;
-	int			m_iSize; //설정창에 시리얼로 들어온 데이터 갯수를 보여주기 위해  갯수를 받을 변수 
-	int			m_iCount;// 받은 데이터를 화면에 보여줄때 정렬 하기 위해 사용 한줄에 8묶음 2개 (16개 데이터)
+	int			m_iSize;
+	int			responseIdx;
 	int			bSize;
 	BYTE		bPbyte[12];
-	BOOL		b_Pflg;
+	int			b_Pflg;
 	CString		result;
 
 	BOOL GetFolder(CString *strSelectedFolder, const char *lpszTitle, const HWND hwndOwner, const char *strRootFolder, const char *strStartFolder);

@@ -120,7 +120,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_nPresetID		= 0;
 
 	m_iSize			= 0;
-	m_iCount		= 0;
+	responseIdx		= 0;
 	bSize			= 0;
 
 	memset(bPbyte, NULL, 12);
@@ -903,15 +903,10 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				pDlg->m_pCamera->SetBayer(pnConvertData, nBufSize, pData, (ENeptuneBayerLayout)NEPTUNE_BAYER_GR_BG,
 				(ENeptuneBayerMethod)NEPTUNE_BAYER_METHOD_NEAREST, 0);
 				pDlg->m_pDraw->DrawConvertImage(pnConvertData, nBufSize, pData->GetWidth(),	pData->GetHeight());
+				delete pnConvertData;
 			}
 			else if (cstrPixelFormat.Left(3) == _T("YUV"))
 			{
-				/*
-				_uint32_t nRGBBuffer = pData->GetWidth() * pData->GetHeight() * 3;
-				_char_t* pRGBBuffer = new _char_t[nRGBBuffer];
-				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
-				pDlg->m_pDraw->DrawConvertImage(pRGBBuffer, nRGBBuffer, pData->GetWidth(), pData->GetHeight());
-				*/
 				pDlg->m_pDraw->DrawRawImage(pData);
 			}
 			else
@@ -1588,7 +1583,6 @@ void CPTCameraControlDlg::OnBnClickedButtonClose()
 void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focus 5:All
 {
 	UpdateData(TRUE);
-	ATLTRACE("Query Position %d\n",num);
 	BYTE ch[10] = { 0, };
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 
@@ -1704,119 +1698,37 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 	UpdateData(TRUE);//받는 데이터 타입을 알기 위해
 
 	CString str = "";
-	BYTE aByte;													//데이터를 저장할 변수 
+	BYTE aByte;	 
 
 	int iSize = (ptController.m_ComuPort.m_QueueRead).GetSize();
-	ATLTRACE("OnCommunication %d\n", iSize);
-	result = "";
 	for (int i = 0; i < iSize; i++)
 	{
 		(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);
-		bPbyte[i] = aByte;
-
 		str.Format("%02X ", aByte);
-		m_iCount++;
 		result += str;
 	}
-	ATLTRACE("result " + result +"\n");
-	if (iSize < 7){
-		if (b_Pflg == FALSE){
-			for (int i = 0; i < iSize; i++)
-			{
-				(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);	
-				bPbyte[i] = aByte;
-
-				str.Format("%02X ", aByte);
-				m_iCount++;										
-				result += str;
-			}
-			b_Pflg = TRUE;
-		}
-		else{
-			for (int i = (7 - iSize); i < 7; i++)				//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
-			{
-				(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);		//큐에서 데이터 한개를 읽어옴
-				bPbyte[i] = aByte;
-
-				str.Format("%02X ", aByte);
-				m_iCount++;										//데이터 갯수 세기
-				if ((m_iCount % 7) == 0)						//7개를 받으면 줄 바꿈
-				{
-					str += _T("\r\n");
-				}
-				result += str;
-			}
-			b_Pflg = FALSE;
-
-			if (bPbyte[0] == 0xFF){
-				PelcoDComm(bPbyte);
-				m_EditCommunicationReceive.SetSel(-1, 0);
-				m_EditCommunicationReceive.ReplaceSel(result);
-
-				result = "";
-			}
-			else{
-				m_EditCommunicationReceive.SetSel(-1, 0);
-				m_EditCommunicationReceive.ReplaceSel(result);
-				ATLTRACE("Reset complete 1\n");
-				//m_EditCommunication.ReplaceSel("Reset complete 1\n");
-				//OnBnClickedButtonPtzfconfirmpos();
-				Clear();
-			}
-		}
-	}
-	else if (iSize == 7){
-		if (b_Pflg == FALSE){
-			for (int i = 0; i < iSize; i++)							//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
-			{
-				(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);			//큐에서 데이터 한개를 읽어옴
-				bPbyte[i] = aByte;
-
-				str.Format("%02X ", aByte);
-				m_iCount++;											//데이터 갯수 세기
-				if ((m_iCount % 7) == 0)							//7개를 받으면 줄 바꿈
-				{
-					str += _T("\r\n");
-				}
-				result += str;
-			}
-
-			if (bPbyte[0] == 0xFF){
-				PelcoDComm(bPbyte);
-				m_EditCommunicationReceive.SetSel(-1, 0);
-				m_EditCommunicationReceive.ReplaceSel(result);
-
-				result = "";
-			}
-			else{
-				b_Pflg = TRUE;
-			}
-		}
-		else{
+	ATLTRACE("result " + result);
+	int syncByte = result.Find("FF 01")/3;
+	if (syncByte != -1)
+	{
+		if (strlen(result) / 3 - syncByte >= 7)
+		{
+			result = result.Mid(syncByte*3, 21);
+			ATLTRACE("result 2 " + result);
+			result.Replace(" ", "");
+			result.Replace("\r\n", "");
 			m_EditCommunicationReceive.SetSel(-1, 0);
-			m_EditCommunicationReceive.ReplaceSel(result);
-			ATLTRACE("Reset complete 2\n");
-			//m_EditCommunication.ReplaceSel("Reset complete 2\n");
-			//OnBnClickedButtonPtzfconfirmpos();
-			Clear();
-		}
-	}
-	else if (iSize > 7 && iSize < 12){
-		m_EditCommunicationReceive.SetSel(-1, 0);
-		m_EditCommunicationReceive.ReplaceSel(result);
-		ATLTRACE("Reset complete 3\n");
-		//m_EditCommunication.ReplaceSel("Reset complete 3\n");
-		Clear();
-		//OnBnClickedButtonPtzfconfirmpos();
-	}
-	else{
-		m_EditCommunicationReceive.SetSel(-1, 0);
-		m_EditCommunicationReceive.ReplaceSel(result);
-		ATLTRACE("Communication Error\n");
-		//m_EditCommunication.ReplaceSel("Communication Error\n");
-		Clear();
-	}
+			m_EditCommunicationReceive.ReplaceSel(result + "\n");
 
+			for (unsigned int i = 0; i < strlen(result); i += 2) {
+				CString byteString = result.Mid(i, 2);
+				unsigned char byte = (unsigned char)strtol(byteString, NULL, 16);
+				bPbyte[i / 2] = byte;
+			}
+			PelcoDComm(bPbyte);
+			result = "";			
+		}	
+	}
 	return 1;
 }
 
@@ -1845,6 +1757,8 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 
 					m_EditPanPos.SetSel(-1, 0);
 					m_EditPanPos.ReplaceSel(str);
+					m_EditCommunicationReceive.SetSel(-1, 0);
+					m_EditCommunicationReceive.ReplaceSel("Pan Get Pos "+ str + "\n");
 				}
 				else{
 					//m_EditCommunication.SetSel(-1, 0);
@@ -1865,6 +1779,8 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 
 					m_EditTiltPos.SetSel(-1, 0);
 					m_EditTiltPos.ReplaceSel(str);
+					m_EditCommunicationReceive.SetSel(-1, 0);
+					m_EditCommunicationReceive.ReplaceSel("Tilt Get Pos " + str + "\n");
 				}
 				else{
 					ATLTRACE("Checksum Error\n");
@@ -1885,6 +1801,8 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 
 					m_EditZoomPos.SetSel(-1, 0);
 					m_EditZoomPos.ReplaceSel(str);
+					m_EditCommunicationReceive.SetSel(-1, 0);
+					m_EditCommunicationReceive.ReplaceSel("Zoom Get Pos " + str + "\n");
 				}
 				else{
 					ATLTRACE("Checksum Error\n");
@@ -1905,6 +1823,8 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 
 					m_EditFocusPos.SetSel(-1, 0);
 					m_EditFocusPos.ReplaceSel(str);
+					m_EditCommunicationReceive.SetSel(-1, 0);
+					m_EditCommunicationReceive.ReplaceSel("Focus Get Pos " + str + "\n");
 				}
 				else{
 					ATLTRACE("Checksum Error\n");
@@ -2734,9 +2654,10 @@ void CPTCameraControlDlg::OnBnClickedButtonPtrightdown()
 
 void CPTCameraControlDlg::Clear()
 {
+	ATLTRACE("Clear");
 	memset(bPbyte, NULL, 12);
 	(ptController.m_ComuPort.m_QueueRead).Clear();
 	result = "";
 	b_Pflg = FALSE;
-	m_iCount = 0;
+	responseIdx = 0;
 }
