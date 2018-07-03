@@ -12,16 +12,9 @@ PTController::~PTController()
 }
 void PTController::PTMove(int dir, int speed)
 {
-
-	BYTE ch[10] = { 0, };
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 	str0 = "FF";
-	ch[0] = HexString2Int(str0);
-
-	ch[1] = HexString2Int(strAddress);
-
 	str2 = "00";
-	ch[2] = HexString2Int(str2);
 
 	// dir
 	// 7 8 9 
@@ -30,13 +23,8 @@ void PTController::PTMove(int dir, int speed)
 	if (dir == 5)
 	{
 		str3 = "00";
-		ch[3] = HexString2Int(str3);
-
 		str4 = "00";
-		ch[4] = HexString2Int(str4);
-
 		str5 = "00";
-		ch[5] = HexString2Int(str5);
 	}
 	else
 	{
@@ -50,22 +38,33 @@ void PTController::PTMove(int dir, int speed)
 		else if (dir == 1 || dir == 2 || dir == 3)
 			dirStr += 16;
 		str3.Format(_T("%02X"), dirStr & 0xFF);
-		ch[3] = HexString2Int(str3);
-
 		str4.Format(_T("%02X"), speed & 0xFF);
-		ch[4] = HexString2Int(str4);
-
 		str5.Format(_T("%02X"), speed & 0xFF);
-		ch[5] = HexString2Int(str5);
 	}
-	ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-
-	strCrc1.Format("%01X", ch[6]);
-	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-
+	byGetDataT = addChecksum(str0 + strAddress + str2 + str3 + str4 + str5);
 	//m_EditCommunicationSend.SetSel(-1, 0);
 	//m_EditCommunicationSend.ReplaceSel(str0 + " " + strAddress + " " + str2 + " " + str3 + " " + str4 + " " + str5 + " " + strCrc1 +"\n");
 	OnWriteComm(byGetDataT);
+}
+
+CString PTController::addChecksum(CString str)
+{
+	if (strlen(str) != 12)
+	{
+		ATLTRACE("Pelco D String Length Err");
+	}
+	else
+	{
+		BYTE ch[7];
+		CString checksumStr, byGetDataT;
+		for (unsigned int i = 0; i < strlen(str); i += 2) {
+			CString byteString = str.Mid(i, 2);
+			ch[i / 2] = HexString2Int(byteString);
+		}
+		ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
+		checksumStr.Format("%01X", ch[6]);
+		return str + checksumStr;
+	}
 }
 
 void PTController::OnWriteComm(CString str)

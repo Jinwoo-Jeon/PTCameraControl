@@ -107,7 +107,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_iParity		= 0; // None
 
 	strAddress		= "01"; // Pelco Address
-	ptController.strAddress = "01";
+	ptController.strAddress = strAddress;
 	run = 0;
 	detectionOn = 0;
 	trackingOn = 0;
@@ -1707,23 +1707,25 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 		str.Format("%02X ", aByte);
 		result += str;
 	}
-	ATLTRACE("result " + result);
-	int syncByte = result.Find("FF 01")/3;
+	ATLTRACE("result " + result + "\n");
+	int syncByte = result.Find("FF "+ strAddress);
+	ATLTRACE("syncByte %d\n", syncByte);
 	if (syncByte != -1)
 	{
-		if (strlen(result) / 3 - syncByte >= 7)
+		if ((strlen(result) - syncByte)/3 >= 7)
 		{
-			result = result.Mid(syncByte*3, 21);
-			ATLTRACE("result 2 " + result);
+			result = result.Mid(syncByte, 21);
+			ATLTRACE("result 2 " + result + "\n");
 			result.Replace(" ", "");
 			result.Replace("\r\n", "");
+			m_EditCommunicationReceive.SetSel(-1, 0);
+			m_EditCommunicationReceive.ReplaceSel("--------------\n");
 			m_EditCommunicationReceive.SetSel(-1, 0);
 			m_EditCommunicationReceive.ReplaceSel(result + "\n");
 
 			for (unsigned int i = 0; i < strlen(result); i += 2) {
 				CString byteString = result.Mid(i, 2);
-				unsigned char byte = (unsigned char)strtol(byteString, NULL, 16);
-				bPbyte[i / 2] = byte;
+				bPbyte[i / 2] = HexString2Int(byteString);
 			}
 			PelcoDComm(bPbyte);
 			result = "";			

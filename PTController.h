@@ -12,6 +12,7 @@ public:
 	PTController();
 	~PTController();
 	void PTMove(int dir, int speed=0);
+	CString addChecksum(CString str);
 	void OnWriteComm(CString str);
 	BYTE byCode2AsciiValue(char cData);
 };
