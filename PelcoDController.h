@@ -2,6 +2,20 @@
 #include "CommThread.h"
 #include "crc16.h"
 
+namespace PTDir {
+	enum Enum {
+		LEFTDOWN,
+		DOWN,
+		RIGHTDOWN,
+		LEFT,
+		STOP,
+		RIGHT,
+		LEFTUP,
+		UP,
+		RIGHTUP
+	};
+}
+
 class PelcoDController
 {
 public:
@@ -11,7 +25,7 @@ public:
 
 	PelcoDController();
 	~PelcoDController();
-	void PTMove(int dir, int speed=0);
+	void PTMove(PTDir::Enum dir, int speed=0);
 	CString addChecksum(CString str);
 	void OnWriteComm(CString str);
 	BYTE byCode2AsciiValue(char cData);

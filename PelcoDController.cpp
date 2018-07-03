@@ -10,17 +10,13 @@ PelcoDController::PelcoDController()
 PelcoDController::~PelcoDController()
 {
 }
-void PelcoDController::PTMove(int dir, int speed)
+void PelcoDController::PTMove(PTDir::Enum dir, int speed)
 {
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 	str0 = "FF";
 	str2 = "00";
 
-	// dir
-	// 7 8 9 
-	// 4 5 6 
-	// 1 2 3
-	if (dir == 5)
+	if (dir == PTDir::STOP)
 	{
 		str3 = "00";
 		str4 = "00";
@@ -29,14 +25,32 @@ void PelcoDController::PTMove(int dir, int speed)
 	else
 	{
 		int dirStr = 0;
-		if (dir == 3 || dir == 6 || dir == 9)
+		switch (dir)
+		{
+		case PTDir::RIGHT:
+		case PTDir::RIGHTUP:
+		case PTDir::RIGHTDOWN:
 			dirStr += 2;
-		else if (dir == 1 || dir == 4 || dir == 7)
+			break;
+		case PTDir::LEFT:
+		case PTDir::LEFTUP:
+		case PTDir::LEFTDOWN:
 			dirStr += 4;
-		if (dir == 7 || dir == 8 || dir == 9)
+			break;
+		}
+		switch(dir)
+		{
+		case PTDir::LEFTUP:
+		case PTDir::UP:
+		case PTDir::RIGHTUP:
 			dirStr += 8;
-		else if (dir == 1 || dir == 2 || dir == 3)
+			break;
+		case PTDir::LEFTDOWN:
+		case PTDir::DOWN:
+		case PTDir::RIGHTDOWN:
 			dirStr += 16;
+			break;
+		}
 		str3.Format(_T("%02X"), dirStr & 0xFF);
 		str4.Format(_T("%02X"), speed & 0xFF);
 		str5.Format(_T("%02X"), speed & 0xFF);
@@ -77,11 +91,10 @@ void PelcoDController::OnWriteComm(CString str)
 	int datasize, bufsize, i, j;
 	BYTE *Send_buff, byHigh, byLow;
 
-	str.Replace(" ", "");// 공백 없애기 
-	str.Replace("\r\n", "");//엔터 없애기
-	datasize = str.GetLength(); // 공백을 없앤 문자열 길이 얻기 
+	str.Replace(" ", "");
+	str.Replace("\r\n", "");
 
-								// 문자 길이를 %2로 나눈 값이 0이 아니면 홀수 이기 때문에 마지막 문자를 처리 해줘야 함
+	datasize = str.GetLength(); 
 	if (datasize % 2 == 0)
 	{
 		bufsize = datasize;
@@ -100,22 +113,19 @@ void PelcoDController::OnWriteComm(CString str)
 		Send_buff[bufPos++] = (byHigh << 4) | byLow;
 
 	}
-	//마지막 문자가 1자리수 일때 처리 하기 위해  예) 1 -> 01
 	if (datasize % 2 != 0)
 	{
 		Send_buff[bufPos++] = byCode2AsciiValue(str[datasize - 1]);
 	}
 
 	int etc = bufPos % 8;
-	//포트에 데이터를 8개씩 쓰기 위해
-	//데이터의 길이가 8의 배수가 아니면 나머지 데이터는 따로 보내줌
-	for (j = 0; j < bufPos - etc; j += 8)//8의 배수 보냄
+	for (j = 0; j < bufPos - etc; j += 8)
 	{
 		m_ComuPort.WriteComm(&Send_buff[j], 8);
 	}
-	if (etc != 0)//나머지 데이터 전송
+	if (etc != 0)
 	{
-		m_ComuPort.WriteComm(&Send_buff[bufPos - etc], etc);// 포트에 데이터 쓰기 
+		m_ComuPort.WriteComm(&Send_buff[bufPos - etc], etc);
 	}
 
 	delete[] Send_buff;
@@ -123,7 +133,6 @@ void PelcoDController::OnWriteComm(CString str)
 
 BYTE PelcoDController::byCode2AsciiValue(char cData)
 {
-	//이 함수는 char문자를 hex값으로 변경해 주는 함수 입니다.
 	BYTE byAsciiValue;
 	if (('0' <= cData) && (cData <= '9'))
 	{

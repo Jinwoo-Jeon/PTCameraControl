@@ -837,45 +837,45 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			{
 				if (dist_y > centerMargin)
 				{
-					pelcoDController.PTMove(3, vel);
+					pelcoDController.PTMove(PTDir::RIGHTDOWN, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					pelcoDController.PTMove(9, vel);
+					pelcoDController.PTMove(PTDir::RIGHTUP, vel);
 				}
 				else
 				{
-					pelcoDController.PTMove(6, vel);
+					pelcoDController.PTMove(PTDir::RIGHT, vel);
 				}
 			}
 			else if (dist_x < -centerMargin)
 			{
 				if (dist_y > centerMargin)
 				{
-					pelcoDController.PTMove(1, vel);
+					pelcoDController.PTMove(PTDir::LEFTDOWN, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					pelcoDController.PTMove(7, vel);
+					pelcoDController.PTMove(PTDir::LEFTUP, vel);
 				}
 				else
 				{
-					pelcoDController.PTMove(4, vel);
+					pelcoDController.PTMove(PTDir::LEFT, vel);
 				}
 			}
 			else
 			{
 				if (dist_y > centerMargin)
 				{
-					pelcoDController.PTMove(2, vel);
+					pelcoDController.PTMove(PTDir::DOWN, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					pelcoDController.PTMove(8, vel);
+					pelcoDController.PTMove(PTDir::UP, vel);
 				}
 				else
 				{
-					pelcoDController.PTMove(5);
+					pelcoDController.PTMove(PTDir::STOP);
 				}
 			}
 			endTime = clock();
@@ -2033,7 +2033,7 @@ void CPTCameraControlDlg::OnBnClickedButtonLenszeroset()
 
 void CPTCameraControlDlg::OnBnClickedButtonZoomstop()
 {
-	pelcoDController.PTMove(5);
+	pelcoDController.PTMove(PTDir::STOP);
 	OnQueryPosition(3);
 }
 
@@ -2049,7 +2049,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomwide()
 		OnPelcoDDlgEnable(TRUE, 3);
 		GetDlgItem(IDC_BUTTON_ZOOMWIDE)->SetWindowText("Wide");
 
-		pelcoDController.PTMove(5);
+		pelcoDController.PTMove(PTDir::STOP);
 		OnQueryPosition(3);
 		run = 0;
 	}
@@ -2097,7 +2097,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomtele()
 		OnPelcoDDlgEnable(TRUE, 3);
 		GetDlgItem(IDC_BUTTON_ZOOMTELE)->SetWindowText("Tele");
 
-		pelcoDController.PTMove(5);
+		pelcoDController.PTMove(PTDir::STOP);
 		OnQueryPosition(3);
 		run = 0;
 	}
@@ -2197,7 +2197,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocuszeroset()
 
 void CPTCameraControlDlg::OnBnClickedButtonFocusstop()
 {
-	pelcoDController.PTMove(5);
+	pelcoDController.PTMove(PTDir::STOP);
 	OnQueryPosition(4);
 }
 
@@ -2213,7 +2213,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusfar()
 		OnPelcoDDlgEnable(TRUE, 4);
 		GetDlgItem(IDC_BUTTON_FOCUSFAR)->SetWindowText("Far");
 
-		pelcoDController.PTMove(5);
+		pelcoDController.PTMove(PTDir::STOP);
 		OnQueryPosition(4);
 		run = 0;
 	}
@@ -2261,7 +2261,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusnear()
 		OnPelcoDDlgEnable(TRUE, 4);
 		GetDlgItem(IDC_BUTTON_FOCUSNEAR)->SetWindowText("Near");
 
-		pelcoDController.PTMove(5);
+		pelcoDController.PTMove(PTDir::STOP);
 		OnQueryPosition(4);
 		run = 0;
 	}
@@ -2580,19 +2580,19 @@ void CPTCameraControlDlg::OnBnClickedButtonPtzfconfirmpos()
 
 void CPTCameraControlDlg::OnBnClickedButtonPanstop()
 {
-	pelcoDController.PTMove(5);
+	pelcoDController.PTMove(PTDir::STOP);
 	OnQueryPosition(1);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltstop()
 {
-	pelcoDController.PTMove(5);
+	pelcoDController.PTMove(PTDir::STOP);
 	OnQueryPosition(2);
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 {
-	ATLTRACE("-------------PTSTOP-------------\n");
-	pelcoDController.PTMove(5);
+	//ATLTRACE("-------------PTSTOP-------------\n");
+	pelcoDController.PTMove(PTDir::STOP);
 	OnQueryPosition(1);
 	Delay(100);
 	OnQueryPosition(2);
@@ -2601,56 +2601,56 @@ void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 void CPTCameraControlDlg::OnBnClickedButtonPtup()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(8, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::UP, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtdown()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(2, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::DOWN, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtright()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(6, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::RIGHT, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleft()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(4, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::LEFT, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleftup()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(7, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::LEFTUP, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleftdown()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(1, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::LEFTDOWN, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtrightup()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(9, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::RIGHTUP, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtrightdown()
 {
 	UpdateData(TRUE);
-	pelcoDController.PTMove(3, m_nPTSpeed);
+	pelcoDController.PTMove(PTDir::RIGHTDOWN, m_nPTSpeed);
 	run = 1;
 }
 
