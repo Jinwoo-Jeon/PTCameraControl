@@ -15,6 +15,14 @@ namespace PTDir {
 		RIGHTUP
 	};
 }
+namespace PTPos {
+	enum Enum {
+		PAN,
+		TILT,
+		FOCUS,
+		ZOOM
+	};
+}
 
 class PelcoDController
 {
@@ -25,6 +33,7 @@ public:
 
 	PelcoDController();
 	~PelcoDController();
+	void PTQueryPosition(PTPos::Enum target);
 	void PTMove(PTDir::Enum dir, int speed=0);
 	CString addChecksum(CString str);
 	void OnWriteComm(CString str);

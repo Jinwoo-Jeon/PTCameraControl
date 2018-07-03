@@ -808,7 +808,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 					{
 						if (!tracker->init(m, trackerBB))
 						{
-							ATLTRACE("***Could not initialize tracker...***\n");
+							ATLTRACE("***Could not initialize tracker...***\r\n");
 						}
 						trackerInit = true;
 					}
@@ -1107,7 +1107,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPlay()
 	m_bStop = NEPTUNE_BOOL_FALSE;
 	if (!face_cascade.load(face_cascade_name)) 
 	{ 
-		ATLTRACE("--(!)Error loading\n"); 
+		ATLTRACE("--(!)Error loading\r\n"); 
 	}
 
 	if( !m_pAcqThread )
@@ -1580,118 +1580,6 @@ void CPTCameraControlDlg::OnBnClickedButtonClose()
 
 	}
 }
-void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focus 5:All
-{
-	UpdateData(TRUE);
-	BYTE ch[10] = { 0, };
-	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
-
-	switch (num)
-	{
-		case 1:
-			str0 = "FF";
-			ch[0] = HexString2Int(str0);
-
-			ch[1] = HexString2Int(strAddress);
-
-			str2 = "00";
-			ch[2] = HexString2Int(str2);
-
-			str3 = "51";
-			ch[3] = HexString2Int(str3);
-
-			str4 = "00";
-			ch[4] = HexString2Int(str4);
-
-			str5 = "00";
-			ch[5] = HexString2Int(str5);
-
-			ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-
-			strCrc1.Format("%01X", ch[6]);
-			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			pelcoDController.OnWriteComm(byGetDataT);
-			break;
-			
-		case 2:
-			str0 = "FF";
-			ch[0] = HexString2Int(str0);
-
-			ch[1] = HexString2Int(strAddress);
-
-			str2 = "00";
-			ch[2] = HexString2Int(str2);
-
-			str3 = "53";
-			ch[3] = HexString2Int(str3);
-
-			str4 = "00";
-			ch[4] = HexString2Int(str4);
-
-			str5 = "00";
-			ch[5] = HexString2Int(str5);
-
-			ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-
-			strCrc1.Format("%01X", ch[6]);
-			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			pelcoDController.OnWriteComm(byGetDataT);
-			break;
-
-		case 3:
-			str0 = "FF";
-			ch[0] = HexString2Int(str0);
-
-			ch[1] = HexString2Int(strAddress);
-
-			str2 = "00";
-			ch[2] = HexString2Int(str2);
-
-			str3 = "55";
-			ch[3] = HexString2Int(str3);
-
-			str4 = "00";
-			ch[4] = HexString2Int(str4);
-
-			str5 = "00";
-			ch[5] = HexString2Int(str5);
-
-			ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-
-			strCrc1.Format("%01X", ch[6]);
-			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			pelcoDController.OnWriteComm(byGetDataT);
-			break;
-
-		case 4:
-			str0 = "FF";
-			ch[0] = HexString2Int(str0);
-
-			ch[1] = HexString2Int(strAddress);
-
-			str2 = "00";
-			ch[2] = HexString2Int(str2);
-
-			str3 = "61";
-			ch[3] = HexString2Int(str3);
-
-			str4 = "00";
-			ch[4] = HexString2Int(str4);
-
-			str5 = "00";
-			ch[5] = HexString2Int(str5);
-
-			ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-
-			strCrc1.Format("%01X", ch[6]);
-			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			pelcoDController.OnWriteComm(byGetDataT);
-			break;
-
-		/*default:
-			break;*/
-	}
-}
 
 LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 {
@@ -1707,26 +1595,26 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 		str.Format("%02X ", aByte);
 		result += str;
 	}
-	//ATLTRACE("result " + result + "\n");
+	//ATLTRACE("result " + result + "\r\n");
 	int syncByte = result.Find("FF "+ strAddress);
-	//ATLTRACE("syncByte %d\n", syncByte);
+	//ATLTRACE("syncByte %d\r\n", syncByte);
 	if (syncByte != -1)
 	{
 		if ((strlen(result) - syncByte)/3 >= 7)
 		{
 			result = result.Mid(syncByte, 21);
-			//ATLTRACE("result 2 " + result + "\n");
+			//ATLTRACE("result 2 " + result + "\r\n");
 			result.Replace(" ", "");
 			result.Replace("\r\n", "");
 			m_EditCommunicationReceive.SetSel(-1, 0);
-			m_EditCommunicationReceive.ReplaceSel("----------------------\n");
+			m_EditCommunicationReceive.ReplaceSel("\r\n");
 			m_EditCommunicationReceive.SetSel(-1, 0);
 			for (unsigned int i = 0; i < strlen(result); i += 2) {
 				CString byteString = result.Mid(i, 2);
 				m_EditCommunicationReceive.ReplaceSel(byteString + " ");
 				bPbyte[i / 2] = HexString2Int(byteString);
 			}
-			m_EditCommunicationReceive.ReplaceSel("\n");
+			m_EditCommunicationReceive.ReplaceSel("\r\n");
 			PelcoDComm(bPbyte);
 			result = "";			
 		}	
@@ -1760,12 +1648,12 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditPanPos.SetSel(-1, 0);
 					m_EditPanPos.ReplaceSel(str);
 					m_EditCommunicationReceive.SetSel(-1, 0);
-					m_EditCommunicationReceive.ReplaceSel("Pan Get Pos "+ str + "\n");
+					m_EditCommunicationReceive.ReplaceSel("Pan Get Pos "+ str + "\r\n");
 				}
 				else{
 					//m_EditCommunication.SetSel(-1, 0);
-					//m_EditCommunication.ReplaceSel("Checksum Error\n");
-					ATLTRACE("Checksum Error\n");
+					//m_EditCommunication.ReplaceSel("Checksum Error\r\n");
+					ATLTRACE("Checksum Error\r\n");
 					Clear();
 				}
 			}
@@ -1782,12 +1670,12 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditTiltPos.SetSel(-1, 0);
 					m_EditTiltPos.ReplaceSel(str);
 					m_EditCommunicationReceive.SetSel(-1, 0);
-					m_EditCommunicationReceive.ReplaceSel("Tilt Get Pos " + str + "\n");
+					m_EditCommunicationReceive.ReplaceSel("Tilt Get Pos " + str + "\r\n");
 				}
 				else{
-					ATLTRACE("Checksum Error\n");
+					ATLTRACE("Checksum Error\r\n");
 					//m_EditCommunication.SetSel(-1, 0);
-					//m_EditCommunication.ReplaceSel("Checksum Error\n");
+					//m_EditCommunication.ReplaceSel("Checksum Error\r\n");
 					Clear();
 				}
 			}
@@ -1804,12 +1692,12 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditZoomPos.SetSel(-1, 0);
 					m_EditZoomPos.ReplaceSel(str);
 					m_EditCommunicationReceive.SetSel(-1, 0);
-					m_EditCommunicationReceive.ReplaceSel("Zoom Get Pos " + str + "\n");
+					m_EditCommunicationReceive.ReplaceSel("Zoom Get Pos " + str + "\r\n");
 				}
 				else{
-					ATLTRACE("Checksum Error\n");
+					ATLTRACE("Checksum Error\r\n");
 					//m_EditCommunication.SetSel(-1, 0);
-					//m_EditCommunication.ReplaceSel("Checksum Error\n");
+					//m_EditCommunication.ReplaceSel("Checksum Error\r\n");
 					Clear();
 				}
 			}
@@ -1826,12 +1714,12 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 					m_EditFocusPos.SetSel(-1, 0);
 					m_EditFocusPos.ReplaceSel(str);
 					m_EditCommunicationReceive.SetSel(-1, 0);
-					m_EditCommunicationReceive.ReplaceSel("Focus Get Pos " + str + "\n");
+					m_EditCommunicationReceive.ReplaceSel("Focus Get Pos " + str + "\r\n");
 				}
 				else{
-					ATLTRACE("Checksum Error\n");
+					ATLTRACE("Checksum Error\r\n");
 					//m_EditCommunication.SetSel(-1, 0);
-					//m_EditCommunication.ReplaceSel("Checksum Error\n");
+					//m_EditCommunication.ReplaceSel("Checksum Error\r\n");
 					Clear();
 				}
 			}
@@ -1840,16 +1728,16 @@ void CPTCameraControlDlg::PelcoDComm(BYTE byte[12])
 			//}
 		}
 		else{
-			ATLTRACE("Camera Address Error\n");
+			ATLTRACE("Camera Address Error\r\n");
 			//m_EditCommunication.SetSel(-1, 0);
-			//m_EditCommunication.ReplaceSel("Camera Address Error\n");
+			//m_EditCommunication.ReplaceSel("Camera Address Error\r\n");
 			Clear();
 		}
 	}
 	else{
-		ATLTRACE("Sync Error\n");
+		ATLTRACE("Sync Error\r\n");
 		//m_EditCommunication.SetSel(-1, 0);
-		//m_EditCommunication.ReplaceSel("Sync Error\n");
+		//m_EditCommunication.ReplaceSel("Sync Error\r\n");
 		Clear();
 	}
 
@@ -1936,7 +1824,7 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		}
 		if (tracker == NULL)
 		{
-			ATLTRACE("***Error in the instantiation of the tracker...***\n");
+			ATLTRACE("***Error in the instantiation of the tracker...***\r\n");
 		}
 		namedWindow("Output window", WINDOW_AUTOSIZE);
 		setMouseCallback("Output window", CPTCameraControlDlg::onMouseStatic, (void*)this);
@@ -2034,7 +1922,7 @@ void CPTCameraControlDlg::OnBnClickedButtonLenszeroset()
 void CPTCameraControlDlg::OnBnClickedButtonZoomstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
-	OnQueryPosition(3);
+	pelcoDController.PTQueryPosition(PTPos::ZOOM);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonZoomwide()
@@ -2050,7 +1938,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomwide()
 		GetDlgItem(IDC_BUTTON_ZOOMWIDE)->SetWindowText("Wide");
 
 		pelcoDController.PTMove(PTDir::STOP);
-		OnQueryPosition(3);
+		pelcoDController.PTQueryPosition(PTPos::ZOOM);
 		run = 0;
 	}
 	else
@@ -2098,7 +1986,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomtele()
 		GetDlgItem(IDC_BUTTON_ZOOMTELE)->SetWindowText("Tele");
 
 		pelcoDController.PTMove(PTDir::STOP);
-		OnQueryPosition(3);
+		pelcoDController.PTQueryPosition(PTPos::ZOOM);
 		run = 0;
 	}
 	else
@@ -2198,7 +2086,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocuszeroset()
 void CPTCameraControlDlg::OnBnClickedButtonFocusstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
-	OnQueryPosition(4);
+	pelcoDController.PTQueryPosition(PTPos::FOCUS);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonFocusfar()
@@ -2214,7 +2102,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusfar()
 		GetDlgItem(IDC_BUTTON_FOCUSFAR)->SetWindowText("Far");
 
 		pelcoDController.PTMove(PTDir::STOP);
-		OnQueryPosition(4);
+		pelcoDController.PTQueryPosition(PTPos::FOCUS);
 		run = 0;
 	}
 	else
@@ -2262,7 +2150,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusnear()
 		GetDlgItem(IDC_BUTTON_FOCUSNEAR)->SetWindowText("Near");
 
 		pelcoDController.PTMove(PTDir::STOP);
-		OnQueryPosition(4);
+		pelcoDController.PTQueryPosition(PTPos::FOCUS);
 		run = 0;
 	}
 	else
@@ -2563,39 +2451,39 @@ void CPTCameraControlDlg::OnBnClickedButtonPresetclear()
 
 void CPTCameraControlDlg::OnBnClickedButtonPtzfconfirmpos()
 {
-	OnQueryPosition(1);
+	pelcoDController.PTQueryPosition(PTPos::PAN);
 
 	Delay(100);
 
-	OnQueryPosition(2);
+	pelcoDController.PTQueryPosition(PTPos::TILT);
 
 	Delay(100);
 
-	OnQueryPosition(3);
+	pelcoDController.PTQueryPosition(PTPos::ZOOM);
 
 	Delay(100);
 
-	OnQueryPosition(4);
+	pelcoDController.PTQueryPosition(PTPos::FOCUS);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPanstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
-	OnQueryPosition(1);
+	pelcoDController.PTQueryPosition(PTPos::PAN);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
-	OnQueryPosition(2);
+	pelcoDController.PTQueryPosition(PTPos::TILT);
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 {
-	//ATLTRACE("-------------PTSTOP-------------\n");
+	//ATLTRACE("-------------PTSTOP-------------\r\n");
 	pelcoDController.PTMove(PTDir::STOP);
-	OnQueryPosition(1);
+	pelcoDController.PTQueryPosition(PTPos::PAN);
 	Delay(100);
-	OnQueryPosition(2);
+	pelcoDController.PTQueryPosition(PTPos::TILT);
 	run = 0;
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtup()

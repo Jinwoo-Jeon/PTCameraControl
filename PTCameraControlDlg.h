@@ -150,7 +150,6 @@ public:
 	afx_msg void OnBnClickedTracking();
 	afx_msg void OnBnClickedCursorTracking();
 
-	afx_msg void OnQueryPosition(int num);
 	afx_msg void PelcoDComm(BYTE byte[12]);
 
 	afx_msg void OnTimer(UINT_PTR nIDEvent);

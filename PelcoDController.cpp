@@ -10,51 +10,90 @@ PelcoDController::PelcoDController()
 PelcoDController::~PelcoDController()
 {
 }
+
+
+void PelcoDController::PTQueryPosition(PTPos::Enum target)
+{
+	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
+
+	CString logStr = "";
+	m_EditCommunicationSend.SetSel(-1, 0);
+	switch (target)
+	{
+	case PTPos::PAN:
+		logStr = "\r\n[Query] Pan Position\r\n";
+		str3 = "51";
+		break;
+	case PTPos::TILT:
+		logStr = "\r\n[Query] Tilt Position\r\n";
+		str3 = "53";
+		break;
+	case PTPos::FOCUS:
+		logStr = "\r\n[Query] Focus Position\r\n";
+		str3 = "55";
+		break;
+	case PTPos::ZOOM:
+		logStr = "\r\n[Query] Zoom Position\r\n";
+		str3 = "61";
+		break;
+	}
+	m_EditCommunicationSend.ReplaceSel(logStr);
+	byGetDataT = addChecksum("FF" + strAddress + "00" + str3 + "0000");
+	OnWriteComm(byGetDataT);
+}
+
 void PelcoDController::PTMove(PTDir::Enum dir, int speed)
 {
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 	str0 = "FF";
 	str2 = "00";
 
-	if (dir == PTDir::STOP)
+	int dirStr = 0;
+	CString logStr = "";
+	m_EditCommunicationSend.SetSel(-1, 0);
+	switch (dir)
 	{
-		str3 = "00";
-		str4 = "00";
-		str5 = "00";
+	case PTDir::STOP:
+		logStr = "\r\n[PT Move] Stop\r\n";
+		dirStr = 0;
+		break;
+	case PTDir::RIGHT:
+		logStr.Format("\r\n[PT Move] Right w/ Speed: %d\r\n", speed);
+		dirStr = 2;
+		break;
+	case PTDir::LEFT:
+		logStr.Format("\r\n[PT Move] Left w/ Speed: %d\r\n", speed);
+		dirStr = 4;
+		break;
+	case PTDir::UP:
+		logStr.Format("\r\n[PT Move] Up w/ Speed: %d\r\n", speed);
+		dirStr = 8;
+		break;
+	case PTDir::RIGHTUP:
+		logStr.Format("\r\n[PT Move] RightUp w/ Speed: %d\r\n", speed);
+		dirStr = 10;
+		break;
+	case PTDir::LEFTUP:
+		logStr.Format("\r\n[PT Move] LeftUp w/ Speed: %d\r\n", speed);
+		dirStr = 12;
+		break;
+	case PTDir::DOWN:
+		logStr.Format("\r\n[PT Move] Down w/ Speed: %d\r\n", speed);
+		dirStr = 16;
+		break;
+	case PTDir::RIGHTDOWN:
+		logStr.Format("\r\n[PT Move] RightDown w/ Speed: %d\r\n", speed);
+		dirStr = 18;
+		break;
+	case PTDir::LEFTDOWN:
+		logStr.Format("\r\n[PT Move] LeftDown w/ Speed: %d\r\n", speed);
+		dirStr = 20;
+		break;
 	}
-	else
-	{
-		int dirStr = 0;
-		switch (dir)
-		{
-		case PTDir::RIGHT:
-		case PTDir::RIGHTUP:
-		case PTDir::RIGHTDOWN:
-			dirStr += 2;
-			break;
-		case PTDir::LEFT:
-		case PTDir::LEFTUP:
-		case PTDir::LEFTDOWN:
-			dirStr += 4;
-			break;
-		}
-		switch(dir)
-		{
-		case PTDir::LEFTUP:
-		case PTDir::UP:
-		case PTDir::RIGHTUP:
-			dirStr += 8;
-			break;
-		case PTDir::LEFTDOWN:
-		case PTDir::DOWN:
-		case PTDir::RIGHTDOWN:
-			dirStr += 16;
-			break;
-		}
-		str3.Format(_T("%02X"), dirStr & 0xFF);
-		str4.Format(_T("%02X"), speed & 0xFF);
-		str5.Format(_T("%02X"), speed & 0xFF);
-	}
+	m_EditCommunicationSend.ReplaceSel(logStr);
+	str3.Format(_T("%02X"), dirStr & 0xFF);
+	str4.Format(_T("%02X"), speed & 0xFF);
+	str5.Format(_T("%02X"), speed & 0xFF);
 	byGetDataT = addChecksum(str0 + strAddress + str2 + str3 + str4 + str5);
 	OnWriteComm(byGetDataT);
 }
@@ -74,7 +113,7 @@ CString PelcoDController::addChecksum(CString str)
 			ch[i / 2] = HexString2Int(byteString);
 		}
 		ch[6] = ch[1] + ch[2] + ch[3] + ch[4] + ch[5];
-		checksumStr.Format("%01X", ch[6]);
+		checksumStr.Format("%02X", ch[6]);
 		return str + checksumStr;
 	}
 }
@@ -86,7 +125,7 @@ void PelcoDController::OnWriteComm(CString str)
 		CString byteString = str.Mid(i, 2);
 		m_EditCommunicationSend.ReplaceSel(byteString + " ");
 	}
-	m_EditCommunicationSend.ReplaceSel("\n");
+	m_EditCommunicationSend.ReplaceSel("\r\n");
 	int bufPos = 0;
 	int datasize, bufsize, i, j;
 	BYTE *Send_buff, byHigh, byLow;
