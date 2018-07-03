@@ -31,7 +31,7 @@ static bool selectObject = false;
 static bool trackerInit = false;
 static bool mouseDown = false;
 
-PTController CPTCameraControlDlg::ptController;
+PelcoDController CPTCameraControlDlg::pelcoDController;
 bool CPTCameraControlDlg::run;
 bool CPTCameraControlDlg::detectionOn;
 bool CPTCameraControlDlg::trackingOn;
@@ -107,7 +107,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_iParity		= 0; // None
 
 	strAddress		= "01"; // Pelco Address
-	ptController.strAddress = strAddress;
+	pelcoDController.strAddress = strAddress;
 	run = 0;
 	detectionOn = 0;
 	trackingOn = 0;
@@ -167,7 +167,7 @@ void CPTCameraControlDlg::DoDataExchange(CDataExchange* pDX)
 	//DDV_MinMaxInt(pDX, m_nFocusSetPos, 24, 992);
 	DDX_Control(pDX, IDC_EDIT_COMMUNICATION_RECEIVE, m_EditCommunicationReceive);
 	DDX_Text(pDX, IDC_EDIT_COMMUNICATION_RECEIVE, m_strCommunicationReceive);
-	DDX_Control(pDX, IDC_EDIT_COMMUNICATION_SEND, ptController.m_EditCommunicationSend);
+	DDX_Control(pDX, IDC_EDIT_COMMUNICATION_SEND, pelcoDController.m_EditCommunicationSend);
 	DDX_Control(pDX, IDC_EDIT_PTPRESETPARAM, m_EditPresetID);
 	DDX_Text(pDX, IDC_EDIT_PTPRESETPARAM, m_nPresetID);
 	//DDV_MinMaxInt(pDX, m_nPresetID, 0, 254);
@@ -837,45 +837,45 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			{
 				if (dist_y > centerMargin)
 				{
-					ptController.PTMove(3, vel);
+					pelcoDController.PTMove(3, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					ptController.PTMove(9, vel);
+					pelcoDController.PTMove(9, vel);
 				}
 				else
 				{
-					ptController.PTMove(6, vel);
+					pelcoDController.PTMove(6, vel);
 				}
 			}
 			else if (dist_x < -centerMargin)
 			{
 				if (dist_y > centerMargin)
 				{
-					ptController.PTMove(1, vel);
+					pelcoDController.PTMove(1, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					ptController.PTMove(7, vel);
+					pelcoDController.PTMove(7, vel);
 				}
 				else
 				{
-					ptController.PTMove(4, vel);
+					pelcoDController.PTMove(4, vel);
 				}
 			}
 			else
 			{
 				if (dist_y > centerMargin)
 				{
-					ptController.PTMove(2, vel);
+					pelcoDController.PTMove(2, vel);
 				}
 				else if (dist_y < -centerMargin)
 				{
-					ptController.PTMove(8, vel);
+					pelcoDController.PTMove(8, vel);
 				}
 				else
 				{
-					ptController.PTMove(5);
+					pelcoDController.PTMove(5);
 				}
 			}
 			endTime = clock();
@@ -1358,9 +1358,9 @@ void CPTCameraControlDlg::OnBnClickedButtonOpen()
 	UpdateData(TRUE);
 	CString PortName;
 	PortName.Format("OPEN PORT: %s\r\n", byIndexComPort(m_iSerialPort));
-	if (ptController.m_ComuPort.m_bConnected == FALSE)//포트가 닫혀 있을 경우에만 포트를 열기 위해
+	if (pelcoDController.m_ComuPort.m_bConnected == FALSE)//포트가 닫혀 있을 경우에만 포트를 열기 위해
 	{
-		if (ptController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity)) == TRUE)
+		if (pelcoDController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity)) == TRUE)
 		{
 			OnPelcoDDlgEnable(TRUE, 1);
 			OnPelcoDDlgEnable(TRUE, 2);
@@ -1451,10 +1451,10 @@ void CPTCameraControlDlg::OnSelchangeComboBaudrate()
 	UpdateData(TRUE);
 	CString change, str;
 	m_iBaudRate = m_cBaudRate.GetCurSel();
-	if (ptController.m_ComuPort.m_bConnected == TRUE)
+	if (pelcoDController.m_ComuPort.m_bConnected == TRUE)
 	{
-		ptController.m_ComuPort.ClosePort();
-		ptController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
+		pelcoDController.m_ComuPort.ClosePort();
+		pelcoDController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
 	}
 	m_cBaudRate.GetLBText(m_iBaudRate, str);
 	change.Format("BaudRate change: %s \r\n", str);
@@ -1483,10 +1483,10 @@ void CPTCameraControlDlg::OnSelchangeComboDatabit()
 	UpdateData(TRUE);
 	CString change, str;
 	m_iDataBit = m_cDataBit.GetCurSel();
-	if (ptController.m_ComuPort.m_bConnected == TRUE)
+	if (pelcoDController.m_ComuPort.m_bConnected == TRUE)
 	{
-		ptController.m_ComuPort.ClosePort();
-		ptController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
+		pelcoDController.m_ComuPort.ClosePort();
+		pelcoDController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
 	}
 	m_cDataBit.GetLBText(m_iDataBit, str);
 	change.Format("DataBit change: %s \r\n", str);
@@ -1513,10 +1513,10 @@ void CPTCameraControlDlg::OnSelchangeComboStopbit()
 	UpdateData(TRUE);
 	CString change, str;
 	m_iStopBit = m_cStopBit.GetCurSel();
-	if (ptController.m_ComuPort.m_bConnected == TRUE)
+	if (pelcoDController.m_ComuPort.m_bConnected == TRUE)
 	{
-		ptController.m_ComuPort.ClosePort();
-		ptController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
+		pelcoDController.m_ComuPort.ClosePort();
+		pelcoDController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
 	}
 	m_cStopBit.GetLBText(m_iStopBit, str);
 	change.Format("StopBit change: %s \r\n", str);
@@ -1544,10 +1544,10 @@ void CPTCameraControlDlg::OnSelchangeComboParity()
 	UpdateData(TRUE);
 	CString change, str;
 	m_iParity = m_cParity.GetCurSel();
-	if (ptController.m_ComuPort.m_bConnected == TRUE)
+	if (pelcoDController.m_ComuPort.m_bConnected == TRUE)
 	{
-		ptController.m_ComuPort.ClosePort();
-		ptController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
+		pelcoDController.m_ComuPort.ClosePort();
+		pelcoDController.m_ComuPort.OpenPort(byIndexComPort(m_iSerialPort), byIndexBaud(m_iBaudRate), byIndexData(m_iDataBit), byIndexStop(m_iStopBit), byIndexParity(m_iParity));
 	}
 	m_cParity.GetLBText(m_iParity, str);
 	change.Format("Parity change: %s \r\n", str);
@@ -1559,9 +1559,9 @@ void CPTCameraControlDlg::OnBnClickedButtonClose()
 {
 	UpdateData(TRUE);
 	CString PortName;
-	if (ptController.m_ComuPort.m_bConnected == TRUE)
+	if (pelcoDController.m_ComuPort.m_bConnected == TRUE)
 	{
-		ptController.m_ComuPort.ClosePort();
+		pelcoDController.m_ComuPort.ClosePort();
 		PortName.Format("CLOSE PORT: %s \r\n", byIndexComPort(m_iSerialPort));
 		//m_EditControl.SetSel(-1, 0);
 		//m_EditControl.ReplaceSel(PortName);
@@ -1610,7 +1610,7 @@ void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focu
 
 			strCrc1.Format("%01X", ch[6]);
 			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			ptController.OnWriteComm(byGetDataT);
+			pelcoDController.OnWriteComm(byGetDataT);
 			break;
 			
 		case 2:
@@ -1635,7 +1635,7 @@ void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focu
 
 			strCrc1.Format("%01X", ch[6]);
 			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			ptController.OnWriteComm(byGetDataT);
+			pelcoDController.OnWriteComm(byGetDataT);
 			break;
 
 		case 3:
@@ -1660,7 +1660,7 @@ void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focu
 
 			strCrc1.Format("%01X", ch[6]);
 			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			ptController.OnWriteComm(byGetDataT);
+			pelcoDController.OnWriteComm(byGetDataT);
 			break;
 
 		case 4:
@@ -1685,7 +1685,7 @@ void CPTCameraControlDlg::OnQueryPosition(int num) // 1:Pan 2:Tilt 3:Zoom 4:Focu
 
 			strCrc1.Format("%01X", ch[6]);
 			byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-			ptController.OnWriteComm(byGetDataT);
+			pelcoDController.OnWriteComm(byGetDataT);
 			break;
 
 		/*default:
@@ -1700,33 +1700,33 @@ LRESULT CPTCameraControlDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 	CString str = "";
 	BYTE aByte;	 
 
-	int iSize = (ptController.m_ComuPort.m_QueueRead).GetSize();
+	int iSize = (pelcoDController.m_ComuPort.m_QueueRead).GetSize();
 	for (int i = 0; i < iSize; i++)
 	{
-		(ptController.m_ComuPort.m_QueueRead).GetByte(&aByte);
+		(pelcoDController.m_ComuPort.m_QueueRead).GetByte(&aByte);
 		str.Format("%02X ", aByte);
 		result += str;
 	}
-	ATLTRACE("result " + result + "\n");
+	//ATLTRACE("result " + result + "\n");
 	int syncByte = result.Find("FF "+ strAddress);
-	ATLTRACE("syncByte %d\n", syncByte);
+	//ATLTRACE("syncByte %d\n", syncByte);
 	if (syncByte != -1)
 	{
 		if ((strlen(result) - syncByte)/3 >= 7)
 		{
 			result = result.Mid(syncByte, 21);
-			ATLTRACE("result 2 " + result + "\n");
+			//ATLTRACE("result 2 " + result + "\n");
 			result.Replace(" ", "");
 			result.Replace("\r\n", "");
 			m_EditCommunicationReceive.SetSel(-1, 0);
-			m_EditCommunicationReceive.ReplaceSel("--------------\n");
+			m_EditCommunicationReceive.ReplaceSel("----------------------\n");
 			m_EditCommunicationReceive.SetSel(-1, 0);
-			m_EditCommunicationReceive.ReplaceSel(result + "\n");
-
 			for (unsigned int i = 0; i < strlen(result); i += 2) {
 				CString byteString = result.Mid(i, 2);
+				m_EditCommunicationReceive.ReplaceSel(byteString + " ");
 				bPbyte[i / 2] = HexString2Int(byteString);
 			}
+			m_EditCommunicationReceive.ReplaceSel("\n");
 			PelcoDComm(bPbyte);
 			result = "";			
 		}	
@@ -1997,7 +1997,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoompositionmove()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonLenszeroset()
@@ -2028,12 +2028,12 @@ void CPTCameraControlDlg::OnBnClickedButtonLenszeroset()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonZoomstop()
 {
-	ptController.PTMove(5);
+	pelcoDController.PTMove(5);
 	OnQueryPosition(3);
 }
 
@@ -2049,7 +2049,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomwide()
 		OnPelcoDDlgEnable(TRUE, 3);
 		GetDlgItem(IDC_BUTTON_ZOOMWIDE)->SetWindowText("Wide");
 
-		ptController.PTMove(5);
+		pelcoDController.PTMove(5);
 		OnQueryPosition(3);
 		run = 0;
 	}
@@ -2080,7 +2080,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomwide()
 
 		strCrc1.Format("%01X", ch[6]);
 		byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-		ptController.OnWriteComm(byGetDataT);
+		pelcoDController.OnWriteComm(byGetDataT);
 		run = 1;
 	}
 }
@@ -2097,7 +2097,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomtele()
 		OnPelcoDDlgEnable(TRUE, 3);
 		GetDlgItem(IDC_BUTTON_ZOOMTELE)->SetWindowText("Tele");
 
-		ptController.PTMove(5);
+		pelcoDController.PTMove(5);
 		OnQueryPosition(3);
 		run = 0;
 	}
@@ -2128,7 +2128,7 @@ void CPTCameraControlDlg::OnBnClickedButtonZoomtele()
 
 		strCrc1.Format("%01X", ch[6]);
 		byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-		ptController.OnWriteComm(byGetDataT);
+		pelcoDController.OnWriteComm(byGetDataT);
 		run = 1;
 	}
 }
@@ -2161,7 +2161,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocuspositionmove()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonFocuszeroset()
@@ -2192,12 +2192,12 @@ void CPTCameraControlDlg::OnBnClickedButtonFocuszeroset()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonFocusstop()
 {
-	ptController.PTMove(5);
+	pelcoDController.PTMove(5);
 	OnQueryPosition(4);
 }
 
@@ -2213,7 +2213,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusfar()
 		OnPelcoDDlgEnable(TRUE, 4);
 		GetDlgItem(IDC_BUTTON_FOCUSFAR)->SetWindowText("Far");
 
-		ptController.PTMove(5);
+		pelcoDController.PTMove(5);
 		OnQueryPosition(4);
 		run = 0;
 	}
@@ -2244,7 +2244,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusfar()
 
 		strCrc1.Format("%01X", ch[6]);
 		byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-		ptController.OnWriteComm(byGetDataT);
+		pelcoDController.OnWriteComm(byGetDataT);
 		run = 1;
 	}
 }
@@ -2261,7 +2261,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusnear()
 		OnPelcoDDlgEnable(TRUE, 4);
 		GetDlgItem(IDC_BUTTON_FOCUSNEAR)->SetWindowText("Near");
 
-		ptController.PTMove(5);
+		pelcoDController.PTMove(5);
 		OnQueryPosition(4);
 		run = 0;
 	}
@@ -2292,7 +2292,7 @@ void CPTCameraControlDlg::OnBnClickedButtonFocusnear()
 
 		strCrc1.Format("%01X", ch[6]);
 		byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-		ptController.OnWriteComm(byGetDataT);
+		pelcoDController.OnWriteComm(byGetDataT);
 		run = 1;
 	}
 }
@@ -2325,7 +2325,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPanpositionmove()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPansetzero()
@@ -2356,7 +2356,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPansetzero()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltpositionmove()
@@ -2387,7 +2387,7 @@ void CPTCameraControlDlg::OnBnClickedButtonTiltpositionmove()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltsetzero()
@@ -2418,7 +2418,7 @@ void CPTCameraControlDlg::OnBnClickedButtonTiltsetzero()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtzfreset()
@@ -2449,7 +2449,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPtzfreset()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::Delay(DWORD dwMillisecond)
@@ -2496,7 +2496,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPresetgoto()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPresetset()
@@ -2527,7 +2527,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPresetset()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPresetclear()
@@ -2558,7 +2558,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPresetclear()
 
 	strCrc1.Format("%01X", ch[6]);
 	byGetDataT = str0 + strAddress + str2 + str3 + str4 + str5 + strCrc1;
-	ptController.OnWriteComm(byGetDataT);
+	pelcoDController.OnWriteComm(byGetDataT);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtzfconfirmpos()
@@ -2580,19 +2580,19 @@ void CPTCameraControlDlg::OnBnClickedButtonPtzfconfirmpos()
 
 void CPTCameraControlDlg::OnBnClickedButtonPanstop()
 {
-	ptController.PTMove(5);
+	pelcoDController.PTMove(5);
 	OnQueryPosition(1);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltstop()
 {
-	ptController.PTMove(5);
+	pelcoDController.PTMove(5);
 	OnQueryPosition(2);
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 {
 	ATLTRACE("-------------PTSTOP-------------\n");
-	ptController.PTMove(5);
+	pelcoDController.PTMove(5);
 	OnQueryPosition(1);
 	Delay(100);
 	OnQueryPosition(2);
@@ -2601,56 +2601,56 @@ void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 void CPTCameraControlDlg::OnBnClickedButtonPtup()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(8, m_nPTSpeed);
+	pelcoDController.PTMove(8, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtdown()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(2, m_nPTSpeed);
+	pelcoDController.PTMove(2, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtright()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(6, m_nPTSpeed);
+	pelcoDController.PTMove(6, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleft()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(4, m_nPTSpeed);
+	pelcoDController.PTMove(4, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleftup()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(7, m_nPTSpeed);
+	pelcoDController.PTMove(7, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtleftdown()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(1, m_nPTSpeed);
+	pelcoDController.PTMove(1, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtrightup()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(9, m_nPTSpeed);
+	pelcoDController.PTMove(9, m_nPTSpeed);
 	run = 1;
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonPtrightdown()
 {
 	UpdateData(TRUE);
-	ptController.PTMove(3, m_nPTSpeed);
+	pelcoDController.PTMove(3, m_nPTSpeed);
 	run = 1;
 }
 
@@ -2658,7 +2658,7 @@ void CPTCameraControlDlg::Clear()
 {
 	ATLTRACE("Clear");
 	memset(bPbyte, NULL, 12);
-	(ptController.m_ComuPort.m_QueueRead).Clear();
+	(pelcoDController.m_ComuPort.m_QueueRead).Clear();
 	result = "";
 	b_Pflg = FALSE;
 	responseIdx = 0;

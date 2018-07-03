@@ -10,7 +10,7 @@
 #include "StreamWriter.h"
 #include "DisplayImage.h"
 #include "crc16.h"
-#include "PTController.h"
+#include "PelcoDController.h"
 
 #if ( _MSC_VER >= 1600 )
 	#pragma comment( lib, "NeptuneClassLib_MD_VC100.lib" )
@@ -48,7 +48,7 @@ protected:
 	afx_msg LRESULT OnCommunication(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 public:
-	static PTController ptController;
+	static PelcoDController pelcoDController;
 	static bool run;
 	static bool detectionOn;
 	static bool trackingOn;

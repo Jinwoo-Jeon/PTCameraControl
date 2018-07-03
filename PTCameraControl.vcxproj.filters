@@ -24,13 +24,13 @@
     <ClCompile Include="CommThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PTController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PTCameraControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PTCameraControlDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PelcoDController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,13 +47,13 @@
     <ClInclude Include="CommThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PTController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PTCameraControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PTCameraControlDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PelcoDController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

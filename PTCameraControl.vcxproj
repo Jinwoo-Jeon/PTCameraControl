@@ -218,7 +218,7 @@
     <ClCompile Include="crc16.cpp" />
     <ClCompile Include="PTCameraControl.cpp" />
     <ClCompile Include="PTCameraControlDlg.cpp" />
-    <ClCompile Include="PTController.cpp" />
+    <ClCompile Include="PelcoDController.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -231,7 +231,7 @@
     <ClInclude Include="crc16.h" />
     <ClInclude Include="PTCameraControl.h" />
     <ClInclude Include="PTCameraControlDlg.h" />
-    <ClInclude Include="PTController.h" />
+    <ClInclude Include="PelcoDController.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

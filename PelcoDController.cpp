@@ -1,16 +1,16 @@
 #include "stdafx.h"
-#include "PTController.h"
+#include "PelcoDController.h"
 
 
-PTController::PTController()
+PelcoDController::PelcoDController()
 {
 }
 
 
-PTController::~PTController()
+PelcoDController::~PelcoDController()
 {
 }
-void PTController::PTMove(int dir, int speed)
+void PelcoDController::PTMove(int dir, int speed)
 {
 	CString str0, str2, str3, str4, str5, strCrc1, byGetDataT;
 	str0 = "FF";
@@ -42,12 +42,10 @@ void PTController::PTMove(int dir, int speed)
 		str5.Format(_T("%02X"), speed & 0xFF);
 	}
 	byGetDataT = addChecksum(str0 + strAddress + str2 + str3 + str4 + str5);
-	//m_EditCommunicationSend.SetSel(-1, 0);
-	//m_EditCommunicationSend.ReplaceSel(str0 + " " + strAddress + " " + str2 + " " + str3 + " " + str4 + " " + str5 + " " + strCrc1 +"\n");
 	OnWriteComm(byGetDataT);
 }
 
-CString PTController::addChecksum(CString str)
+CString PelcoDController::addChecksum(CString str)
 {
 	if (strlen(str) != 12)
 	{
@@ -67,10 +65,14 @@ CString PTController::addChecksum(CString str)
 	}
 }
 
-void PTController::OnWriteComm(CString str)
+void PelcoDController::OnWriteComm(CString str)
 {
 	m_EditCommunicationSend.SetSel(-1, 0);
-	m_EditCommunicationSend.ReplaceSel(str + "\n");
+	for (unsigned int i = 0; i < strlen(str); i += 2) {
+		CString byteString = str.Mid(i, 2);
+		m_EditCommunicationSend.ReplaceSel(byteString + " ");
+	}
+	m_EditCommunicationSend.ReplaceSel("\n");
 	int bufPos = 0;
 	int datasize, bufsize, i, j;
 	BYTE *Send_buff, byHigh, byLow;
@@ -119,7 +121,7 @@ void PTController::OnWriteComm(CString str)
 	delete[] Send_buff;
 }
 
-BYTE PTController::byCode2AsciiValue(char cData)
+BYTE PelcoDController::byCode2AsciiValue(char cData)
 {
 	//이 함수는 char문자를 hex값으로 변경해 주는 함수 입니다.
 	BYTE byAsciiValue;
