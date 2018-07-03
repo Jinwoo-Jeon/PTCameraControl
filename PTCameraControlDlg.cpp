@@ -2482,7 +2482,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 	//ATLTRACE("-------------PTSTOP-------------\r\n");
 	pelcoDController.PTMove(PTDir::STOP);
 	pelcoDController.PTQueryPosition(PTPos::PAN);
-	Delay(100);
+	//Delay(100);
 	pelcoDController.PTQueryPosition(PTPos::TILT);
 	run = 0;
 }

@@ -28,11 +28,11 @@ void PelcoDController::PTQueryPosition(PTPos::Enum target)
 		logStr = "\r\n[Query] Tilt Position\r\n";
 		str3 = "53";
 		break;
-	case PTPos::FOCUS:
+	case PTPos::ZOOM:
 		logStr = "\r\n[Query] Focus Position\r\n";
 		str3 = "55";
 		break;
-	case PTPos::ZOOM:
+	case PTPos::FOCUS:
 		logStr = "\r\n[Query] Zoom Position\r\n";
 		str3 = "61";
 		break;
