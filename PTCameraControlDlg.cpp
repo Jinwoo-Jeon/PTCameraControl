@@ -9,7 +9,6 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/tracking.hpp>
 #include <iostream>
 #include <string>
 
@@ -23,15 +22,13 @@ using namespace cv;
 #define new DEBUG_NEW
 #endif
 
-String face_cascade_name = "haarcascade/haarcascade_profileface.xml";
-CascadeClassifier face_cascade;  
-Ptr<Tracker> tracker;
 static Rect2d trackerBB;
 static bool selectObject = false;
 static bool trackerInit = false;
 static bool mouseDown = false;
 
 PelcoDController CPTCameraControlDlg::pelcoDController;
+ImageProcController CPTCameraControlDlg::imageProcController;
 bool CPTCameraControlDlg::run;
 bool CPTCameraControlDlg::detectionOn;
 bool CPTCameraControlDlg::trackingOn;
@@ -786,7 +783,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			if (detectionOn)
 			{
 				std::vector<Rect> faces;
-				face_cascade.detectMultiScale(m, faces, 1.1, 2);
+				imageProcController.face_cascade.detectMultiScale(m, faces, 1.1, 2);
 				if (faces.size() > 0)
 				{
 					faceCntrPoint = Point(faces[0].x + faces[0].width / 2, faces[0].y + faces[0].height / 2);
@@ -799,7 +796,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				{
 					if (!trackerInit)
 					{
-						if (!tracker->init(m, trackerBB))
+						if (!imageProcController.tracker->init(m, trackerBB))
 						{
 							ATLTRACE("***Could not initialize tracker...***\r\n");
 						}
@@ -807,7 +804,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 					}
 					else
 					{
-						tracker->update(m, trackerBB);
+						imageProcController.tracker->update(m, trackerBB);
 						faceCntrPoint = Point(int(trackerBB.x + trackerBB.width / 2), int(trackerBB.y + trackerBB.height / 2));
 						rectangle(m_copy, trackerBB, Scalar(255, 0, 0), 5);
 					}
@@ -1100,11 +1097,7 @@ void CPTCameraControlDlg::OnBnClickedButtonPlay()
 	}
 
 	m_bStop = NEPTUNE_BOOL_FALSE;
-	if (!face_cascade.load(face_cascade_name)) 
-	{ 
-		ATLTRACE("--(!)Error loading\r\n"); 
-	}
-
+	
 	if( !m_pAcqThread )
 	{
 		// Create to acquisition thread.
@@ -1756,11 +1749,15 @@ void CPTCameraControlDlg::OnBnClickedDetection()
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(TRUE);
+		OnBnClickedButtonPtstop();
 	}
 	else
 	{
+		if (!imageProcController.initFaceDetector("haarcascade/haarcascade_profileface.xml"))
+			ATLTRACE("--(!)Error loading\r\n");
 		detectionOn = true;
 		GetDlgItem(IDC_BUTTON_DETECTION)->SetWindowText("Detection Stop");
+
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(FALSE);
@@ -1776,6 +1773,7 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(TRUE);
+		OnBnClickedButtonPtstop();
 	}
 	else
 	{
@@ -1790,36 +1788,36 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		trackerBB = Rect2d(0, 0, 0, 0);
 
 		m_iTrackingMethod = m_cTrackingMethod.GetCurSel();
-		//ATLTRACE("%d", m_iTrackingMethod);
+		bool trackerInitRes;
 		switch (m_iTrackingMethod) {
 		case 0:
 			//error
-			tracker = TrackerBoosting::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::Boosting);
 			break;
 		case 1:
-			tracker = TrackerCSRT::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::CSRT);
 			break;
 		case 2:
 			//error
-			tracker = TrackerGOTURN::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::GOTURN);
 			break;
 		case 3:
-			tracker = TrackerKCF::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::KCF);
 			break;
 		case 4:
-			tracker = TrackerMedianFlow::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::MedianFlow);
 			break;
 		case 5:
-			tracker = TrackerMIL::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::MIL);
 			break;
 		case 6:
-			tracker = TrackerMOSSE::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::MOSSE);
 			break;
 		case 7:
-			tracker = TrackerTLD::create();
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::TLD);
 			break;
 		}
-		if (tracker == NULL)
+		if (trackerInitRes)
 		{
 			ATLTRACE("***Error in the instantiation of the tracker...***\r\n");
 		}
@@ -1837,6 +1835,7 @@ void CPTCameraControlDlg::OnBnClickedCursorTracking()
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(TRUE);
+		OnBnClickedButtonPtstop();
 		//destroyWindow("Detection window");
 	}
 	else

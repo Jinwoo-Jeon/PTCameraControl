@@ -216,6 +216,7 @@
   <ItemGroup>
     <ClCompile Include="CommThread.cpp" />
     <ClCompile Include="crc16.cpp" />
+    <ClCompile Include="ImageProcController.cpp" />
     <ClCompile Include="PTCameraControl.cpp" />
     <ClCompile Include="PTCameraControlDlg.cpp" />
     <ClCompile Include="PelcoDController.cpp" />
@@ -229,6 +230,7 @@
   <ItemGroup>
     <ClInclude Include="CommThread.h" />
     <ClInclude Include="crc16.h" />
+    <ClInclude Include="ImageProcController.h" />
     <ClInclude Include="PTCameraControl.h" />
     <ClInclude Include="PTCameraControlDlg.h" />
     <ClInclude Include="PelcoDController.h" />

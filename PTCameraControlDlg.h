@@ -11,6 +11,7 @@
 #include "DisplayImage.h"
 #include "crc16.h"
 #include "PelcoDController.h"
+#include "ImageProcController.h"
 
 #if ( _MSC_VER >= 1600 )
 	#pragma comment( lib, "NeptuneClassLib_MD_VC100.lib" )
@@ -49,6 +50,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	static PelcoDController pelcoDController;
+	static ImageProcController imageProcController;
 	static bool run;
 	static bool detectionOn;
 	static bool trackingOn;
