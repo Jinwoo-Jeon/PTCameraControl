@@ -10,3 +10,4 @@ enc_temp_folder
 *.sdf
 *.VC.db
 *.VC.VC.opendb
+PTCameraControl.VC.db

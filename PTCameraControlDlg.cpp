@@ -755,36 +755,29 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			int vel = 0;
 			int centerMargin = 10;
 			Mat m;
+			_uint32_t nRGBBuffer = pData->GetWidth() * pData->GetHeight() * 3;			_char_t* pRGBBuffer = new _char_t[nRGBBuffer];
 			if (cstrPixelFormat == _T("BayerGR8"))
 			{
-				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
 				cvtColor(m, m, COLOR_BayerGR2RGB);
 			}
-			else if (cstrPixelFormat == _T("BayerGR12"))
+			else if (cstrPixelFormat == _T("BayerGR12")) 
 			{
-				//m = Mat(pData->GetHeight(), pData->GetWidth(), CV_16U, (uchar*)pData->GetBufferPtr()).clone();
-				//cvtColor(m, m, COLOR_BayerGR2RGB);
-				cv::Mat mat16uc1_bayer(pData->GetHeight(), pData->GetWidth(), CV_16UC1, (uchar*)pData->GetBufferPtr());
-
-				// Decode the Bayer data to RGB but keep using 16 bits per channel
-				cv::Mat mat16uc3_rgb(pData->GetWidth(), pData->GetHeight(), CV_16UC3);
-				cv::cvtColor(mat16uc1_bayer, mat16uc3_rgb, cv::COLOR_BayerGR2RGB);
-
-				// Convert the 16-bit per channel RGB image to 8-bit per channel
-				cv::Mat m(pData->GetWidth(), pData->GetHeight(), CV_8UC3);
-				mat16uc3_rgb.convertTo(m, CV_8UC3, 1.0 / 256);
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_16UC1, (uchar*)pData->GetBufferPtr());
+				cvtColor(m, m, COLOR_BayerGR2RGB);
+				m.convertTo(m, CV_8UC3, 1.0/16);
 			}
 			else if (cstrPixelFormat == _T("YUV411Packed"))
-			{
-				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+			{				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC3, pRGBBuffer);
 			}
 			else if (cstrPixelFormat == _T("YUV422Packed"))
-			{
-				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+			{				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC3, pRGBBuffer);
 			}
 			else
 			{
-				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr()).clone();
+				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr());
 			}
 			resize(m, m, Size(pData->GetWidth() / downScale, pData->GetHeight() / downScale), 0, 0, INTER_CUBIC);
 			Mat m_copy;
@@ -891,7 +884,9 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 
 			namedWindow("Output window", WINDOW_AUTOSIZE);
 			imshow("Output window", m_copy);
+			delete pRGBBuffer;
 			waitKey(1);
+			
 		}
 		else
 		{
@@ -1141,8 +1136,10 @@ void CPTCameraControlDlg::OnBnClickedButtonStop()
 		if( dwExitCode == STILL_ACTIVE )
 		{
 			// Wait for AcquisitionThread is exited.
+			ATLTRACE(_T("WaitForSingleObject\r\n"));
 			WaitForSingleObject( m_pAcqThread->m_hThread, INFINITE );
 		}
+		ATLTRACE(_T("delete m_pAcqThread\r\n"));
 		delete m_pAcqThread;
 		m_pAcqThread = NULL;
 	}
@@ -1150,7 +1147,7 @@ void CPTCameraControlDlg::OnBnClickedButtonStop()
 	// Set Acquisition stop to a camera.
 	if ( m_pCamera->AcquisitionStop() != NEPTUNE_ERR_Success )
 	{
-		AfxMessageBox( _T("Acquisition stop error!") );
+		ATLTRACE( _T("Acquisition stop error!\r\n") );
 		return;
 	}
 
@@ -1793,7 +1790,7 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		trackerBB = Rect2d(0, 0, 0, 0);
 
 		m_iTrackingMethod = m_cTrackingMethod.GetCurSel();
-		ATLTRACE("%d", m_iTrackingMethod);
+		//ATLTRACE("%d", m_iTrackingMethod);
 		switch (m_iTrackingMethod) {
 		case 0:
 			//error
