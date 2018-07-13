@@ -15,16 +15,14 @@ namespace TrackerMethod {
 		MedianFlow,
 		MIL,
 		MOSSE,
-		TLD
+		TLD,
+		OFbased_SP,
+		OFbased_MP
 	};
 }
 class ImageProcController
 {
 public:
-	uchar* imageBufferPtr;
-	int imageWidth;
-	int imageHeight;
-
 	cv::Ptr<cv::Tracker> tracker;
 	cv::CascadeClassifier face_cascade;
 
@@ -32,8 +30,7 @@ public:
 	~ImageProcController();
 	bool initTracker(TrackerMethod::Enum method);
 	bool initFaceDetector(cv::String classfierFilename);
-	void setImageInfo();
-	cv::Mat getRGBImageMat();
+	cv::Rect detectFace(cv::Mat image);
 
 };
 

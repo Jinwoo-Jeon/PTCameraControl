@@ -8,6 +8,8 @@
 //#include <opencv2/imgproc/imgproc.hpp>
 //#include <opencv2/highgui.hpp>
 
+using namespace cv;
+
 ImageProcController::ImageProcController()
 {
 }
@@ -58,4 +60,19 @@ bool ImageProcController::initFaceDetector(cv::String classfierFilename)
 	}
 	return true;
 
+}
+
+cv::Rect ImageProcController::detectFace(cv::Mat image)
+{
+	Point faceCntrPoint;
+	std::vector<Rect> faces;
+	face_cascade.detectMultiScale(image, faces, 1.1, 2);
+	if (faces.size() > 0)
+	{
+		return faces[0];
+	}
+	else 
+	{
+		return cv::Rect(0,0,0,0);
+	}
 }

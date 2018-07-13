@@ -51,10 +51,10 @@ protected:
 public:
 	static PelcoDController pelcoDController;
 	static ImageProcController imageProcController;
-	static bool run;
-	static bool detectionOn;
-	static bool trackingOn;
-	static bool cursorTrackingOn;
+	bool run;
+	bool detectionOn;
+	bool trackingOn;
+	bool cursorTrackingOn;
 	int m_iTrackingMethod;
 	CComboBox m_cTrackingMethod;
 
@@ -117,7 +117,6 @@ public:
 	void UpdatePixelFormat(void);
 	void UpdateFrameRate(void);
 	void ImageCapture(CFrameDataPtr& pData);
-	// bool UpdateTriggerInfo(void);
 	void onMouse(int event, int x, int y);
 	static void onMouseStatic(int event, int x, int y, int flags, void* userdata);
 	static UINT AcquisitionThread(void* pParam);

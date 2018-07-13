@@ -88,9 +88,6 @@
 #define IDC_BUTTON_TRACKING             1071
 #define IDC_COMBO_TRACKING_METHOD       1072
 #define IDC_BUTTON_CURSOR_TRACKING      1073
-#define IDC_BUTTON_TRACKING2            1074
-#define IDC_BUTTON_HB_TRACKING          1074
-#define IDC_COMBO_HB_TRACKING_METHOD    1075
 
 // Next default values for new objects
 // 

@@ -98,6 +98,62 @@ void PelcoDController::PTMove(PTDir::Enum dir, int speed)
 	OnWriteComm(byGetDataT);
 }
 
+
+void PelcoDController::trackTarget(int target_x, int target_y, int screenCntr_x, int screenCntr_y)
+{
+	int centerMargin = 10;
+
+	int dist_x = target_x - screenCntr_x;
+	int dist_y = target_y - screenCntr_y;
+	int dist = int(sqrt(dist_x*dist_x + dist_y*dist_y));
+	int vel = int(abs(dist) * 24 / sqrt(screenCntr_x*screenCntr_x + screenCntr_y*screenCntr_y) + 40);
+	if (dist_x > centerMargin)
+	{
+		if (dist_y > centerMargin)
+		{
+			PTMove(PTDir::RIGHTDOWN, vel);
+		}
+		else if (dist_y < -centerMargin)
+		{
+			PTMove(PTDir::RIGHTUP, vel);
+		}
+		else
+		{
+			PTMove(PTDir::RIGHT, vel);
+		}
+	}
+	else if (dist_x < -centerMargin)
+	{
+		if (dist_y > centerMargin)
+		{
+			PTMove(PTDir::LEFTDOWN, vel);
+		}
+		else if (dist_y < -centerMargin)
+		{
+			PTMove(PTDir::LEFTUP, vel);
+		}
+		else
+		{
+			PTMove(PTDir::LEFT, vel);
+		}
+	}
+	else
+	{
+		if (dist_y > centerMargin)
+		{
+			PTMove(PTDir::DOWN, vel);
+		}
+		else if (dist_y < -centerMargin)
+		{
+			PTMove(PTDir::UP, vel);
+		}
+		else
+		{
+			PTMove(PTDir::STOP);
+		}
+	}
+}
+
 CString PelcoDController::addChecksum(CString str)
 {
 	if (strlen(str) != 12)

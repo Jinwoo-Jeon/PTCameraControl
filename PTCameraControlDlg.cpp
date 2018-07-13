@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "atlimage.h"
 #include "PTCameraControl.h"
 #include "PTCameraControlDlg.h"
 #include <opencv2/opencv.hpp>
@@ -17,8 +18,7 @@ using namespace cv;
 
 #ifdef _DEBUG
 
- 
-//#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+
 #define new DEBUG_NEW
 #endif
 
@@ -29,10 +29,6 @@ static bool mouseDown = false;
 
 PelcoDController CPTCameraControlDlg::pelcoDController;
 ImageProcController CPTCameraControlDlg::imageProcController;
-bool CPTCameraControlDlg::run;
-bool CPTCameraControlDlg::detectionOn;
-bool CPTCameraControlDlg::trackingOn;
-bool CPTCameraControlDlg::cursorTrackingOn;
 
 HWND hCommWnd;
 // CAboutDlg dialog used for App About
@@ -105,9 +101,10 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 
 	strAddress		= "01"; // Pelco Address
 	pelcoDController.strAddress = strAddress;
-	run = 0;
-	detectionOn = 0;
-	trackingOn = 0;
+	run = FALSE;
+	detectionOn = FALSE;
+	trackingOn = FALSE;
+	cursorTrackingOn = FALSE;
 	m_iTrackingMethod = 4;
 	m_nPanSetPos	= 33756;
 	m_nTiltSetPos	= 12559;
@@ -712,9 +709,9 @@ void CPTCameraControlDlg::onMouseStatic(int event, int x, int y, int flags, void
 }
 
 double clockToMilliseconds(clock_t ticks) {
-	// units/(units/time) => time (seconds) * 1000 = milliseconds
 	return (ticks / (double)CLOCKS_PER_SEC)*1000.0;
 }
+
 
 UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 {
@@ -736,23 +733,17 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		CString cstrPixelFormat;
 		cstrPixelFormat = pDlg->m_strPixelFormat;
 
-		// when capture mode of PTCameraControl's dialog is ON, triggered image is saved.
 		pDlg->ImageCapture( pData );
 
-		if (detectionOn || trackingOn || cursorTrackingOn) 
+		if (pDlg->detectionOn || pDlg->trackingOn || pDlg->cursorTrackingOn)
 		{
-			int downScale = 10;
-			Point screenCntrPoint = Point(pData->GetWidth() / downScale / 2, pData->GetHeight() / downScale / 2);
-			Point faceCntrPoint = Point(pData->GetWidth() / downScale / 2, pData->GetHeight() / downScale / 2);
-			int dist_x = 0;
-			int dist_y = 0;
-			int dist = 0;
-			int vel_x = 0;
-			int vel_y = 0;
-			int vel = 0;
-			int centerMargin = 10;
+			double scale = 0.1;
+			Point screenCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
+			Point targetCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
+			
 			Mat m;
-			_uint32_t nRGBBuffer = pData->GetWidth() * pData->GetHeight() * 3;			_char_t* pRGBBuffer = new _char_t[nRGBBuffer];
+			_uint32_t nRGBBuffer = pData->GetWidth() * pData->GetHeight() * 3;
+			_char_t* pRGBBuffer = new _char_t[nRGBBuffer];
 			if (cstrPixelFormat == _T("BayerGR8"))
 			{
 				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
@@ -765,32 +756,33 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				m.convertTo(m, CV_8UC3, 1.0/16);
 			}
 			else if (cstrPixelFormat == _T("YUV411Packed"))
-			{				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
+			{
+				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
 				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC3, pRGBBuffer);
 			}
 			else if (cstrPixelFormat == _T("YUV422Packed"))
-			{				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
+			{
+				pDlg->m_pCamera->ConvertYUVToRGB24(pRGBBuffer, nRGBBuffer, pData);
 				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC3, pRGBBuffer);
 			}
 			else
 			{
 				m = Mat(pData->GetHeight(), pData->GetWidth(), CV_8U, (uchar*)pData->GetBufferPtr());
 			}
-			resize(m, m, Size(pData->GetWidth() / downScale, pData->GetHeight() / downScale), 0, 0, INTER_CUBIC);
+			resize(m, m, Size(int(pData->GetWidth() * scale), int(pData->GetHeight() * scale)), 0, 0, INTER_CUBIC);
 			Mat m_copy;
 			m.copyTo(m_copy);
 
-			if (detectionOn)
+			if (pDlg->detectionOn)
 			{
-				std::vector<Rect> faces;
-				imageProcController.face_cascade.detectMultiScale(m, faces, 1.1, 2);
-				if (faces.size() > 0)
+				Rect face = imageProcController.detectFace(m);
+				if (face.width != 0)
 				{
-					faceCntrPoint = Point(faces[0].x + faces[0].width / 2, faces[0].y + faces[0].height / 2);
-					rectangle(m_copy, faces[0], Scalar(255, 0, 0), 5);
+					targetCntrPoint = Point(face.x + face.width / 2, face.y + face.height / 2);
+					rectangle(m_copy, face, Scalar(255, 0, 0), 5);
 				}
 			}
-			else if (trackingOn)
+			else if (pDlg->trackingOn)
 			{
 				if (selectObject)
 				{
@@ -805,69 +797,22 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 					else
 					{
 						imageProcController.tracker->update(m, trackerBB);
-						faceCntrPoint = Point(int(trackerBB.x + trackerBB.width / 2), int(trackerBB.y + trackerBB.height / 2));
+						targetCntrPoint = Point(int(trackerBB.x + trackerBB.width / 2), int(trackerBB.y + trackerBB.height / 2));
 						rectangle(m_copy, trackerBB, Scalar(255, 0, 0), 5);
 					}
 				}
 			}
-			else
+			else if(pDlg->cursorTrackingOn)
 			{
 				if (!(trackerBB.x == -1 && trackerBB.y == -1))
 				{
-					faceCntrPoint = Point(int(trackerBB.x), int(trackerBB.y));
+					targetCntrPoint = Point(int(trackerBB.x), int(trackerBB.y));
 				}
 			}
-			arrowedLine(m_copy, screenCntrPoint, faceCntrPoint, Scalar(0, 200, 0), 2);
+			arrowedLine(m_copy, screenCntrPoint, targetCntrPoint, Scalar(0, 200, 0), 2);
 
-			dist_x = faceCntrPoint.x - screenCntrPoint.x;
-			dist_y = faceCntrPoint.y - screenCntrPoint.y;
-			dist = int(sqrt(dist_x*dist_x + dist_y*dist_y));
-			vel = int(abs(dist) * 24 / sqrt(screenCntrPoint.x*screenCntrPoint.x + screenCntrPoint.y*screenCntrPoint.y) + 40);
-			if (dist_x > centerMargin)
-			{
-				if (dist_y > centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::RIGHTDOWN, vel);
-				}
-				else if (dist_y < -centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::RIGHTUP, vel);
-				}
-				else
-				{
-					pelcoDController.PTMove(PTDir::RIGHT, vel);
-				}
-			}
-			else if (dist_x < -centerMargin)
-			{
-				if (dist_y > centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::LEFTDOWN, vel);
-				}
-				else if (dist_y < -centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::LEFTUP, vel);
-				}
-				else
-				{
-					pelcoDController.PTMove(PTDir::LEFT, vel);
-				}
-			}
-			else
-			{
-				if (dist_y > centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::DOWN, vel);
-				}
-				else if (dist_y < -centerMargin)
-				{
-					pelcoDController.PTMove(PTDir::UP, vel);
-				}
-				else
-				{
-					pelcoDController.PTMove(PTDir::STOP);
-				}
-			}
+			pelcoDController.trackTarget(targetCntrPoint.x, targetCntrPoint.y, screenCntrPoint.x, screenCntrPoint.y);
+
 			endTime = clock();
 			deltaTime += endTime - beginTime;
 			frames++;
@@ -877,7 +822,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				deltaTime -= CLOCKS_PER_SEC;
 			}
 			sprintf(frameRateChar, "%.1f", frameRate);
-			putText(m_copy, frameRateChar, Point(5, pData->GetHeight() / downScale - 5), FONT_HERSHEY_SIMPLEX, 2.0, Scalar(0, 255, 0), 5);
+			putText(m_copy, frameRateChar, Point(5, int(pData->GetHeight() * scale - 5)), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0, 255, 0), 5);
 
 			namedWindow("Output window", WINDOW_AUTOSIZE);
 			imshow("Output window", m_copy);
@@ -889,7 +834,6 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		{
 			if (cstrPixelFormat.Left(5) == _T("Bayer"))
 			{
-				
 				_uint32_t nBufSize = pData->GetWidth() * pData->GetHeight() * 3;
 				_uint8_t* pnConvertData = new _uint8_t[nBufSize];
 				pDlg->m_pCamera->SetBayer(pnConvertData, nBufSize, pData, (ENeptuneBayerLayout)NEPTUNE_BAYER_GR_BG,
@@ -903,8 +847,10 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			}
 			else
 			{
+				Mat img = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
 				pDlg->m_pDraw->DrawRawImage(pData);
 			}
+			
 		}
 		// The data is removed from a queue.
 		pDlg->m_pCamera->QueueBufferDataStream( pData->GetBufferIndex() );
@@ -1816,6 +1762,24 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		case 7:
 			trackerInitRes = imageProcController.initTracker(TrackerMethod::TLD);
 			break;
+		case 8:
+			//> OF based(Single feature);
+			ATLTRACE("Single feature");
+		/*	int windowsize = 15;
+
+			TermCriteria termcrit(TermCriteria::COUNT | TermCriteria::EPS, 20, 0.03);
+			Size subPixWinSize(windowsize, windowsize), winSize(windowsize, windowsize);
+
+			const int MAX_COUNT = 500;
+			bool needToInit = false;
+			bool nightMode = false;
+			
+			cv::namedWindow("Lucas Kanade Tracker", 1);*/
+			//cv::setMouseCallback("Lucas Kanade Tracker", onMouse, 0);
+			
+		case 9:
+			ATLTRACE("multiple feature");
+			//> OF based(Multiple feature);
 		}
 		if (trackerInitRes)
 		{
