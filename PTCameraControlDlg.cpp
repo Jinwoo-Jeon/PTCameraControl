@@ -732,9 +732,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 
 		CString cstrPixelFormat;
 		cstrPixelFormat = pDlg->m_strPixelFormat;
-
-		pDlg->ImageCapture( pData );
-
+		
 		if (pDlg->detectionOn || pDlg->trackingOn || pDlg->cursorTrackingOn)
 		{
 			double scale = 0.1;
@@ -849,9 +847,10 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			{
 				Mat img = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
 				pDlg->m_pDraw->DrawRawImage(pData);
-			}
-			
+			}			
 		}
+
+		pDlg->ImageCapture(pData);
 		// The data is removed from a queue.
 		pDlg->m_pCamera->QueueBufferDataStream( pData->GetBufferIndex() );
 	}
@@ -1143,8 +1142,9 @@ void CPTCameraControlDlg::OnBnClickedButtonCaptureStart()
 		m_pRecord = new CStreamWriter(m_pCamera);
 		_char_t file[MAX_PATH];
 		sprintf_s(file, "%s\\%02d_%02d(%02d_%02d_%02d_%03d).avi", m_strSavePath, sysTime.wMonth, sysTime.wDay, sysTime.wHour,
-				sysTime.wMinute, sysTime.wSecond, sysTime.wMilliseconds);
-		if (m_pRecord->StartStreamCapture(file, NEPTUNE_BOOL_FALSE, NEPTUNE_BOOL_FALSE, 1000) != NEPTUNE_ERR_Success)
+			sysTime.wMinute, sysTime.wSecond, sysTime.wMilliseconds);
+		ATLTRACE("start REC %s\n", file);
+		if (m_pRecord->StartStreamCapture(file, NEPTUNE_BOOL_FALSE) != NEPTUNE_ERR_Success)
 		{
 			AfxMessageBox(_T("AVI capture initialize error!"));
 			delete m_pRecord;
