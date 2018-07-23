@@ -613,7 +613,7 @@ void CPTCameraControlDlg::UpdateFrameRate(void)
 	}
 }
 
-void CPTCameraControlDlg::ImageCapture(CFrameDataPtr& pData)
+void CPTCameraControlDlg::ImageCapture(CFrameDataPtr& pData, const _void_t* pInput = NULL,	_uint32_t nBufSize = NULL,	_uint32_t nWidth = NULL, _uint32_t nHeight = NULL)
 {
 	if ( m_bCapture )
 	{
@@ -629,7 +629,14 @@ void CPTCameraControlDlg::ImageCapture(CFrameDataPtr& pData)
 		{
 			if (m_pRecord)
 			{
-				m_pRecord->WriteRawFrame(pData);
+				if (pInput)
+				{
+					m_pRecord->WriteConvertFrame(pInput, nBufSize, nWidth, nHeight);
+				}
+				else
+				{
+					m_pRecord->WriteRawFrame(pData);
+				}
 			}
 		}
 		else if ( cstrFormat == _T("RAW") )
@@ -837,20 +844,22 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				pDlg->m_pCamera->SetBayer(pnConvertData, nBufSize, pData, (ENeptuneBayerLayout)NEPTUNE_BAYER_GR_BG,
 				(ENeptuneBayerMethod)NEPTUNE_BAYER_METHOD_NEAREST, 0);
 				pDlg->m_pDraw->DrawConvertImage(pnConvertData, nBufSize, pData->GetWidth(),	pData->GetHeight());
+				pDlg->ImageCapture(pData, pnConvertData, nBufSize, pData->GetWidth(), pData->GetHeight());
 				delete pnConvertData;
 			}
 			else if (cstrPixelFormat.Left(3) == _T("YUV"))
 			{
 				pDlg->m_pDraw->DrawRawImage(pData);
+				pDlg->ImageCapture(pData);
 			}
 			else
 			{
 				Mat img = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
 				pDlg->m_pDraw->DrawRawImage(pData);
+				pDlg->ImageCapture(pData);
 			}			
 		}
 
-		pDlg->ImageCapture(pData);
 		// The data is removed from a queue.
 		pDlg->m_pCamera->QueueBufferDataStream( pData->GetBufferIndex() );
 	}
@@ -1066,7 +1075,7 @@ void CPTCameraControlDlg::OnBnClickedButtonStop()
 	// TODO: Add your control notification handler code here
 
 	m_bStop = NEPTUNE_BOOL_TRUE;
-	
+	//OnBnClickedButtonClose();
 	if( m_pAcqThread )
 	{
 		DWORD dwExitCode = 0;
@@ -1074,7 +1083,13 @@ void CPTCameraControlDlg::OnBnClickedButtonStop()
 		if( dwExitCode == STILL_ACTIVE )
 		{
 			// Wait for AcquisitionThread is exited.
-			ATLTRACE(_T("WaitForSingleObject\r\n"));
+			try
+			{
+				::TerminateThread(m_pAcqThread->m_hThread, 0);
+			}
+			catch (CException* e) {
+				ATLTRACE("Err\n");
+			}
 			WaitForSingleObject( m_pAcqThread->m_hThread, INFINITE );
 		}
 		ATLTRACE(_T("delete m_pAcqThread\r\n"));

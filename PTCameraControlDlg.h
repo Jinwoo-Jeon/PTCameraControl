@@ -116,7 +116,8 @@ public:
 	void UpdateCameraList(void);
 	void UpdatePixelFormat(void);
 	void UpdateFrameRate(void);
-	void ImageCapture(CFrameDataPtr& pData);
+
+	void ImageCapture(CFrameDataPtr& pData, const _void_t* pInput, _uint32_t nBufSize, _uint32_t nWidth, _uint32_t nHeight);
 	void onMouse(int event, int x, int y);
 	static void onMouseStatic(int event, int x, int y, int flags, void* userdata);
 	static UINT AcquisitionThread(void* pParam);
