@@ -147,10 +147,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalDependencies>opencv_tracking400d.lib;opencv_core400d.lib;opencv_highgui400d.lib;opencv_objdetect400d.lib;opencv_imgproc400d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_tracking400d.lib;opencv_core400d.lib;opencv_highgui400d.lib;opencv_objdetect400d.lib;opencv_imgproc400d.lib;opencv_video400d.lib;</AdditionalDependencies>
     </Link>
     <ProjectReference>
-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

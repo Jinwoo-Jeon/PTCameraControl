@@ -108,7 +108,7 @@ public:
 	int			responseIdx;
 	int			bSize;
 	BYTE		bPbyte[12];
-	int			b_Pflg;
+	//int			b_Pflg;
 	CString		result;
 
 	BOOL GetFolder(CString *strSelectedFolder, const char *lpszTitle, const HWND hwndOwner, const char *strRootFolder, const char *strStartFolder);

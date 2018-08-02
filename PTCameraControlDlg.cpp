@@ -24,7 +24,6 @@ using namespace cv;
 
 static Rect2d trackerBB;
 static bool selectObject = false;
-static bool trackerInit = false;
 static bool mouseDown = false;
 
 PelcoDController CPTCameraControlDlg::pelcoDController;
@@ -93,7 +92,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_pCamInfo = NULL;
 	m_pAcqThread = NULL;
 
-	m_iSerialPort	= 2; // COM3
+	m_iSerialPort	= 3; // COM4
 	m_iBaudRate		= 1; // 9600
 	m_iDataBit		= 3; // 8 Bit
 	m_iStopBit		= 0; // 1 Bit
@@ -119,7 +118,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 
 	memset(bPbyte, NULL, 12);
 
-	b_Pflg			= FALSE;
+	//b_Pflg			= FALSE;
 	result			= "";
 }
 
@@ -791,17 +790,24 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			{
 				if (selectObject)
 				{
-					if (!trackerInit)
+					if (imageProcController.trackingMethod == TrackerMethod::OFbased_SP)
 					{
-						if (!imageProcController.tracker->init(m, trackerBB))
+						imageProcController.updateLKTracker(m, trackerBB);
+						int meanX = 0;
+						int meanY = 0;
+						for (int i = 0; i< imageProcController.LKpoints.size(); i++)
 						{
-							ATLTRACE("***Could not initialize tracker...***\r\n");
+							int x = cvRound(imageProcController.LKpoints[i].x);
+							int y = cvRound(imageProcController.LKpoints[i].y);
+							meanX += x;
+							meanY += y;
+							circle(m_copy, Point(x, y), 3, Scalar(255, 0, 0), 2);
 						}
-						trackerInit = true;
+						targetCntrPoint = Point(int(meanX / imageProcController.LKpoints.size()), int(meanY / imageProcController.LKpoints.size()));
 					}
 					else
 					{
-						imageProcController.tracker->update(m, trackerBB);
+						imageProcController.updateTracker(m, trackerBB);
 						targetCntrPoint = Point(int(trackerBB.x + trackerBB.width / 2), int(trackerBB.y + trackerBB.height / 2));
 						rectangle(m_copy, trackerBB, Scalar(255, 0, 0), 5);
 					}
@@ -1083,13 +1089,7 @@ void CPTCameraControlDlg::OnBnClickedButtonStop()
 		if( dwExitCode == STILL_ACTIVE )
 		{
 			// Wait for AcquisitionThread is exited.
-			try
-			{
-				::TerminateThread(m_pAcqThread->m_hThread, 0);
-			}
-			catch (CException* e) {
-				ATLTRACE("Err\n");
-			}
+			::TerminateThread(m_pAcqThread->m_hThread, 0);
 			WaitForSingleObject( m_pAcqThread->m_hThread, INFINITE );
 		}
 		ATLTRACE(_T("delete m_pAcqThread\r\n"));
@@ -1744,9 +1744,9 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(FALSE);
 
-		trackerInit = false;
 		selectObject = false;
 		trackerBB = Rect2d(0, 0, 0, 0);
+
 
 		m_iTrackingMethod = m_cTrackingMethod.GetCurSel();
 		bool trackerInitRes;
@@ -1779,24 +1779,14 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 			break;
 		case 8:
 			//> OF based(Single feature);
-			ATLTRACE("Single feature");
-		/*	int windowsize = 15;
-
-			TermCriteria termcrit(TermCriteria::COUNT | TermCriteria::EPS, 20, 0.03);
-			Size subPixWinSize(windowsize, windowsize), winSize(windowsize, windowsize);
-
-			const int MAX_COUNT = 500;
-			bool needToInit = false;
-			bool nightMode = false;
-			
-			cv::namedWindow("Lucas Kanade Tracker", 1);*/
-			//cv::setMouseCallback("Lucas Kanade Tracker", onMouse, 0);
-			
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::OFbased_SP);
+			break;
 		case 9:
-			ATLTRACE("multiple feature");
 			//> OF based(Multiple feature);
+			trackerInitRes = imageProcController.initTracker(TrackerMethod::OFbased_MP);
+			break;
 		}
-		if (trackerInitRes)
+		if (!trackerInitRes)
 		{
 			ATLTRACE("***Error in the instantiation of the tracker...***\r\n");
 		}
@@ -2444,20 +2434,23 @@ void CPTCameraControlDlg::OnBnClickedButtonPtzfconfirmpos()
 void CPTCameraControlDlg::OnBnClickedButtonPanstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
+	Delay(100);
 	pelcoDController.PTQueryPosition(PTPos::PAN);
 }
 
 void CPTCameraControlDlg::OnBnClickedButtonTiltstop()
 {
 	pelcoDController.PTMove(PTDir::STOP);
+	Delay(100);
 	pelcoDController.PTQueryPosition(PTPos::TILT);
 }
 void CPTCameraControlDlg::OnBnClickedButtonPtstop()
 {
 	//ATLTRACE("-------------PTSTOP-------------\r\n");
 	pelcoDController.PTMove(PTDir::STOP);
+	Delay(100);
 	pelcoDController.PTQueryPosition(PTPos::PAN);
-	//Delay(100);
+	Delay(100);
 	pelcoDController.PTQueryPosition(PTPos::TILT);
 	run = 0;
 }
@@ -2523,6 +2516,6 @@ void CPTCameraControlDlg::Clear()
 	memset(bPbyte, NULL, 12);
 	(pelcoDController.m_ComuPort.m_QueueRead).Clear();
 	result = "";
-	b_Pflg = FALSE;
+	//b_Pflg = FALSE;
 	responseIdx = 0;
 }
