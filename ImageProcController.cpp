@@ -86,6 +86,7 @@ cv::Rect ImageProcController::detectFace(cv::Mat image)
 	}
 }
 
+//OpenCV tracker
 void ImageProcController::updateTracker(cv::Mat m, cv::Rect2d &rect) {
 	cvtColor(m, m, CV_RGB2GRAY);
 	if (trackerInitPointSet)

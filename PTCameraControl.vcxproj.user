@@ -4,4 +4,8 @@
     <LocalDebuggerEnvironment>PATH=C:\Users\jjw\Documents\opencv-3.4\install\x64\vc14\bin;C:\Program Files\IMI Tech\Neptune\NeptuneClass Library\Bin\x64;C:\Users\jjw\Documents\opencv-3.4\build\x64\vc14\bin;C:\Program Tech\Neptune\Runtime\x64;%PATH% $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerEnvironment>PATH=C:\Users\jjw\Documents\opencv-3.4\install\x64\vc14\bin;C:\Program Files\IMI Tech\Neptune\NeptuneClass Library\Bin\x64;C:\Users\jjw\Documents\opencv-3.4\build\x64\vc14\bin;C:\Program Tech\Neptune\Runtime\x64;%PATH% $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

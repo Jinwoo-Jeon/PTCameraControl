@@ -741,7 +741,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		
 		if (pDlg->detectionOn || pDlg->trackingOn || pDlg->cursorTrackingOn)
 		{
-			double scale = 0.1;
+			double scale = 0.2;
 			Point screenCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
 			Point targetCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
 			
@@ -1784,6 +1784,8 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 		case 9:
 			//> OF based(Multiple feature);
 			trackerInitRes = imageProcController.initTracker(TrackerMethod::OFbased_MP);
+			break;
+		case 10:
 			break;
 		}
 		if (!trackerInitRes)
