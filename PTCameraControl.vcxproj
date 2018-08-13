@@ -77,7 +77,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>bin\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,7 +128,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Users\jjw\Documents\opencv-3.4\install\include;C:\Program Files\IMI Tech\Neptune\NeptuneClass Library\Include;C:\Program Files\IMI Tech\Neptune\SDKs\include\NeptuneClass;C:\Users\jjw\Documents\opencv-3.4\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\IMI Tech\Neptune\SDKs\include\NeptuneClass;C:\Users\jjw\Documents\opencv-3.4\install\include;C:\Users\jjw\Documents\opencv-3.4\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -143,7 +143,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Program Files\IMI Tech\Neptune\NeptuneClass Library\Lib\x64;C:\Users\jjw\Documents\opencv-3.4\install\x64\vc14\lib;C:\Program Files\IMI Tech\Neptune\SDKs\lib\x64;C:\Users\jjw\Documents\opencv-3.4\build\x64\vc14\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\IMI Tech\Neptune\SDKs\lib\x64;C:\Users\jjw\Documents\opencv-3.4\install\x64\vc14\lib;C:\Users\jjw\Documents\opencv-3.4\build\x64\vc14\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
@@ -217,6 +217,7 @@
     <ClCompile Include="CommThread.cpp" />
     <ClCompile Include="crc16.cpp" />
     <ClCompile Include="ImageProcController.cpp" />
+    <ClCompile Include="OpticalFlowTracker.cpp" />
     <ClCompile Include="PTCameraControl.cpp" />
     <ClCompile Include="PTCameraControlDlg.cpp" />
     <ClCompile Include="PelcoDController.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="CommThread.h" />
     <ClInclude Include="crc16.h" />
     <ClInclude Include="ImageProcController.h" />
+    <ClInclude Include="OpticalFlowTracker.h" />
     <ClInclude Include="PTCameraControl.h" />
     <ClInclude Include="PTCameraControlDlg.h" />
     <ClInclude Include="PelcoDController.h" />

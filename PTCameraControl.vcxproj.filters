@@ -36,6 +36,9 @@
     <ClCompile Include="ImageProcController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OpticalFlowTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageProcController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpticalFlowTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

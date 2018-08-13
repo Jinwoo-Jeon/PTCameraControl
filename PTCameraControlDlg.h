@@ -12,6 +12,7 @@
 #include "crc16.h"
 #include "PelcoDController.h"
 #include "ImageProcController.h"
+#include "OpticalFlowTracker.h"
 
 #if ( _MSC_VER >= 1600 )
 	#pragma comment( lib, "NeptuneClassLib_MD_VC100.lib" )
@@ -51,10 +52,9 @@ protected:
 public:
 	static PelcoDController pelcoDController;
 	static ImageProcController imageProcController;
+	OpticalFlowTracker opticalFlowTracker;
 	bool run;
-	bool detectionOn;
-	bool trackingOn;
-	bool cursorTrackingOn;
+	int currentProcMethod;
 	int m_iTrackingMethod;
 	CComboBox m_cTrackingMethod;
 
@@ -151,6 +151,7 @@ public:
 	afx_msg void OnBnClickedDetection();
 	afx_msg void OnBnClickedTracking();
 	afx_msg void OnBnClickedCursorTracking();
+	afx_msg void OnBnClickedOFTracking();
 
 	afx_msg void PelcoDComm(BYTE byte[12]);
 

@@ -13,6 +13,11 @@
 #include <iostream>
 #include <string>
 
+#define METHOD_DETECTION 1
+#define METHOD_TRACKING 2
+#define METHOD_CURSOR_TRACKING 3
+#define METHOD_OF_TRACKING 4
+
 using namespace std;
 using namespace cv;
 
@@ -92,7 +97,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_pCamInfo = NULL;
 	m_pAcqThread = NULL;
 
-	m_iSerialPort	= 3; // COM4
+	m_iSerialPort	= 6; // COM7
 	m_iBaudRate		= 1; // 9600
 	m_iDataBit		= 3; // 8 Bit
 	m_iStopBit		= 0; // 1 Bit
@@ -101,9 +106,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	strAddress		= "01"; // Pelco Address
 	pelcoDController.strAddress = strAddress;
 	run = FALSE;
-	detectionOn = FALSE;
-	trackingOn = FALSE;
-	cursorTrackingOn = FALSE;
+	currentProcMethod = 0; // det = 1, opencv basic tracking = 2, cursor tracking = 3, OF based tracking = 4 
 	m_iTrackingMethod = 4;
 	m_nPanSetPos	= 33756;
 	m_nTiltSetPos	= 12559;
@@ -185,7 +188,8 @@ BEGIN_MESSAGE_MAP(CPTCameraControlDlg, CDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTON_DETECTION, &CPTCameraControlDlg::OnBnClickedDetection)
 	ON_BN_CLICKED(IDC_BUTTON_TRACKING, &CPTCameraControlDlg::OnBnClickedTracking)
-	ON_BN_CLICKED(IDC_BUTTON_CURSOR_TRACKING, &CPTCameraControlDlg::OnBnClickedCursorTracking)	
+	ON_BN_CLICKED(IDC_BUTTON_CURSOR_TRACKING, &CPTCameraControlDlg::OnBnClickedCursorTracking)
+	ON_BN_CLICKED(IDC_BUTTON_OF_TRACKING, &CPTCameraControlDlg::OnBnClickedOFTracking)
 	ON_BN_CLICKED(IDC_BUTTON_OPEN, &CPTCameraControlDlg::OnBnClickedButtonOpen)
 	ON_CBN_SELCHANGE(IDC_COMBO_PORT, &CPTCameraControlDlg::OnSelchangeComboPort)
 	ON_CBN_SELCHANGE(IDC_COMBO_BAUDRATE, &CPTCameraControlDlg::OnSelchangeComboBaudrate)
@@ -692,14 +696,18 @@ void CPTCameraControlDlg::onMouse(int event, int x, int y)
 		trackerBB.height = std::abs(y - trackerBB.y);
 		selectObject = true;
 		mouseDown = false;
-		if (cursorTrackingOn)
+		if (currentProcMethod == METHOD_CURSOR_TRACKING)
 		{
 			trackerBB.x = -1;
 			trackerBB.y = -1;
 		}
+		else if (currentProcMethod == METHOD_OF_TRACKING)
+		{
+			opticalFlowTracker.generateDragVal(trackerBB);
+		}
 		break;
 	case EVENT_MOUSEMOVE:
-		if (cursorTrackingOn && mouseDown)
+		if (currentProcMethod == METHOD_CURSOR_TRACKING && mouseDown)
 		{
 			trackerBB.x = x;
 			trackerBB.y = y;
@@ -739,7 +747,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		CString cstrPixelFormat;
 		cstrPixelFormat = pDlg->m_strPixelFormat;
 		
-		if (pDlg->detectionOn || pDlg->trackingOn || pDlg->cursorTrackingOn)
+		if (pDlg->currentProcMethod != 0)
 		{
 			double scale = 0.2;
 			Point screenCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
@@ -777,7 +785,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			Mat m_copy;
 			m.copyTo(m_copy);
 
-			if (pDlg->detectionOn)
+			if (pDlg->currentProcMethod == METHOD_DETECTION)
 			{
 				Rect face = imageProcController.detectFace(m);
 				if (face.width != 0)
@@ -786,7 +794,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 					rectangle(m_copy, face, Scalar(255, 0, 0), 5);
 				}
 			}
-			else if (pDlg->trackingOn)
+			else if (pDlg->currentProcMethod == METHOD_TRACKING)
 			{
 				if (selectObject)
 				{
@@ -813,12 +821,30 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 					}
 				}
 			}
-			else if(pDlg->cursorTrackingOn)
+			else if(pDlg->currentProcMethod == METHOD_CURSOR_TRACKING)
 			{
 				if (!(trackerBB.x == -1 && trackerBB.y == -1))
 				{
 					targetCntrPoint = Point(int(trackerBB.x), int(trackerBB.y));
 				}
+			}
+			else if (pDlg->currentProcMethod == METHOD_OF_TRACKING)
+			{
+				if (selectObject)
+				{
+					(pDlg->opticalFlowTracker).updateTracker(m);
+					trackerBB = (pDlg->opticalFlowTracker).getTrackingBBox();
+					if (!trackerBB.empty()) {
+						targetCntrPoint = Point(int(trackerBB.x + trackerBB.width / 2), int(trackerBB.y + trackerBB.height / 2));
+						rectangle(m_copy, trackerBB, Scalar(255, 0, 0), 5);
+					}
+					else {
+						targetCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
+						rectangle(m_copy, trackerBB, Scalar(255, 0, 0), 5);
+						ATLTRACE("empty\n");
+					}
+				}
+
 			}
 			arrowedLine(m_copy, screenCntrPoint, targetCntrPoint, Scalar(0, 200, 0), 2);
 
@@ -906,6 +932,7 @@ void CPTCameraControlDlg::OnCbnSelchangeComboCamera()
 	}
 	catch ( ENeptuneError e )
 	{
+		ATLTRACE("%d\n",e);
 		AfxMessageBox( _T("Can not select camera!") );
 		// Delete camera object.
 		delete m_pCamera;
@@ -1253,6 +1280,7 @@ void CPTCameraControlDlg::OnPelcoDDlgEnable(BOOL bEnable, int num)
 			GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(bEnable);
 			GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(bEnable);
 			GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(bEnable);
+			GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(bEnable);
 			break;
 
 		case 2:
@@ -1273,6 +1301,7 @@ void CPTCameraControlDlg::OnPelcoDDlgEnable(BOOL bEnable, int num)
 			GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(bEnable);
 			GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(bEnable);
 			GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(bEnable);
+			GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(bEnable);
 			break;
 
 		case 3:
@@ -1703,46 +1732,50 @@ void CPTCameraControlDlg::OnTimer(UINT_PTR nIDEvent)
 
 void CPTCameraControlDlg::OnBnClickedDetection()
 {
-	if (detectionOn)
+	if (currentProcMethod == METHOD_DETECTION)
 	{
-		detectionOn = false;
+		currentProcMethod = 0;
 		GetDlgItem(IDC_BUTTON_DETECTION)->SetWindowText("Detection Start");
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(TRUE);
 		OnBnClickedButtonPtstop();
 	}
 	else
 	{
 		if (!imageProcController.initFaceDetector("haarcascade/haarcascade_profileface.xml"))
 			ATLTRACE("--(!)Error loading\r\n");
-		detectionOn = true;
+		currentProcMethod = METHOD_DETECTION;
 		GetDlgItem(IDC_BUTTON_DETECTION)->SetWindowText("Detection Stop");
 
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(FALSE);
 	}
 }
 
 void CPTCameraControlDlg::OnBnClickedTracking()
 {
-	if (trackingOn)
+	if (currentProcMethod == METHOD_TRACKING)
 	{
-		trackingOn = false;
+		currentProcMethod = 0;
 		GetDlgItem(IDC_BUTTON_TRACKING)->SetWindowText("Tracking Start");
 
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(TRUE);
 		OnBnClickedButtonPtstop();
 	}
 	else
 	{
-		trackingOn = true;
+		currentProcMethod = METHOD_TRACKING;
 		GetDlgItem(IDC_BUTTON_TRACKING)->SetWindowText("Tracking Stop");
 
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(FALSE);
 
 		selectObject = false;
 		trackerBB = Rect2d(0, 0, 0, 0);
@@ -1785,8 +1818,6 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 			//> OF based(Multiple feature);
 			trackerInitRes = imageProcController.initTracker(TrackerMethod::OFbased_MP);
 			break;
-		case 10:
-			break;
 		}
 		if (!trackerInitRes)
 		{
@@ -1799,25 +1830,58 @@ void CPTCameraControlDlg::OnBnClickedTracking()
 
 void CPTCameraControlDlg::OnBnClickedCursorTracking()
 {
-	if (cursorTrackingOn)
+	if (currentProcMethod == METHOD_CURSOR_TRACKING)
 	{
-		cursorTrackingOn = false;
+		currentProcMethod = 0;
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->SetWindowText("Cursor Tracking Start");
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(TRUE);
 		OnBnClickedButtonPtstop();
 		//destroyWindow("Detection window");
 	}
 	else
 	{
-		cursorTrackingOn = true;
+		currentProcMethod = METHOD_CURSOR_TRACKING;
 		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->SetWindowText("Cursor Tracking Stop");
 
 		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->EnableWindow(FALSE);
 
-		trackerBB = Rect2d(-1,-1, 0, 0);
+		trackerBB = Rect2d(-1, -1, 0, 0);
+
+		namedWindow("Output window", WINDOW_AUTOSIZE);
+		setMouseCallback("Output window", CPTCameraControlDlg::onMouseStatic, (void*)this);
+	}
+}
+
+void CPTCameraControlDlg::OnBnClickedOFTracking()
+{
+	if (currentProcMethod == METHOD_OF_TRACKING)
+	{
+		currentProcMethod = 0;
+		trackerBB = Rect2d(-1, -1, 0, 0);
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->SetWindowText("OF Tracking Start");
+
+		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(TRUE);
+		OnBnClickedButtonPtstop();
+	}
+	else
+	{
+		currentProcMethod = METHOD_OF_TRACKING;
+		GetDlgItem(IDC_BUTTON_OF_TRACKING)->SetWindowText("OF Tracking Stop");
+
+		GetDlgItem(IDC_BUTTON_TRACKING)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_DETECTION)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_CURSOR_TRACKING)->EnableWindow(FALSE);
+
+		opticalFlowTracker.initTracker();
+		selectObject = false;
+		trackerBB = Rect2d(-1, -1, 0, 0);
 
 		namedWindow("Output window", WINDOW_AUTOSIZE);
 		setMouseCallback("Output window", CPTCameraControlDlg::onMouseStatic, (void*)this);

@@ -101,7 +101,7 @@ void PelcoDController::PTMove(PTDir::Enum dir, int speed)
 
 void PelcoDController::trackTarget(int target_x, int target_y, int screenCntr_x, int screenCntr_y)
 {
-	int centerMargin = 10;
+	int centerMargin = screenCntr_x/10;
 
 	int dist_x = target_x - screenCntr_x;
 	int dist_y = target_y - screenCntr_y;
@@ -172,6 +172,7 @@ CString PelcoDController::addChecksum(CString str)
 		checksumStr.Format("%02X", ch[6]);
 		return str + checksumStr;
 	}
+	return "";
 }
 
 void PelcoDController::OnWriteComm(CString str)
