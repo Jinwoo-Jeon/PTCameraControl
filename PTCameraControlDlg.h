@@ -93,6 +93,8 @@ public:
 	CEdit		m_EditPTSpeed;
 	CEdit		m_EditZoomPos;
 	CEdit		m_EditFocusPos;
+	CSliderCtrl m_SliderPanMove;
+	CSliderCtrl m_SliderTiltMove;
 	CEdit		m_EditPresetID;
 	UINT		m_nPanSetPos;
 	UINT		m_nTiltSetPos;

@@ -18,6 +18,18 @@
 #define METHOD_CURSOR_TRACKING 3
 #define METHOD_OF_TRACKING 4
 
+#define PI 3.14159265
+
+#define PANMINVAL 25899
+#define PANMAXVAL 40000
+
+#define TILTMINVAL 10000
+#define TILTMAXVAL 17278
+
+#define PANCIRCLEPOS_X 70
+#define PANCIRCLEPOS_Y 620
+#define PTCIRCLERADIUS 50
+
 using namespace std;
 using namespace cv;
 
@@ -97,7 +109,7 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	m_pCamInfo = NULL;
 	m_pAcqThread = NULL;
 
-	m_iSerialPort	= 6; // COM7
+	m_iSerialPort	= 7; // COM8
 	m_iBaudRate		= 1; // 9600
 	m_iDataBit		= 3; // 8 Bit
 	m_iStopBit		= 0; // 1 Bit
@@ -108,12 +120,15 @@ CPTCameraControlDlg::CPTCameraControlDlg(CWnd* pParent /*=NULL*/)
 	run = FALSE;
 	currentProcMethod = 0; // det = 1, opencv basic tracking = 2, cursor tracking = 3, OF based tracking = 4 
 	m_iTrackingMethod = 4;
-	m_nPanSetPos	= 33756;
-	m_nTiltSetPos	= 12559;
+	m_nPanSetPos	= 0;
+	m_nTiltSetPos	= 0;
 	m_nPTSpeed		= 50;
-	m_nZoomSetPos	= 149;
-	m_nFocusSetPos	= 177;
+	m_nZoomSetPos	= 0;
+	m_nFocusSetPos	= 0;
 	m_nPresetID		= 0;
+
+	//m_SliderPanMove.SetRange(-63, 63);
+	//m_SliderPanMove.SetPos(0);
 
 	m_iSize			= 0;
 	responseIdx		= 0;
@@ -153,6 +168,8 @@ void CPTCameraControlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_TILTPOSITIONPARAM, m_nTiltSetPos);
 	//DDV_MinMaxInt(pDX, m_nTiltSetPos, 9999, 17287);
 	DDX_Control(pDX, IDC_EDIT_PTSPEEDPARAM, m_EditPTSpeed);
+	DDX_Control(pDX, IDC_SLIDER_PANMOVE, m_SliderPanMove);
+	DDX_Control(pDX, IDC_SLIDER_TILTMOVE, m_SliderTiltMove);
 	DDX_Text(pDX, IDC_EDIT_PTSPEEDPARAM, m_nPTSpeed);
 	//DDV_MinMaxInt(pDX, m_nPTSpeed, 0, 63);
 	DDX_Control(pDX, IDC_EDIT_ZOOMPOSITIONPARAM, m_EditZoomPos);
@@ -299,10 +316,9 @@ void CPTCameraControlDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 void CPTCameraControlDlg::OnPaint()
 {
+	CPaintDC dc(this); // device context for painting
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // device context for painting
-
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
@@ -319,6 +335,9 @@ void CPTCameraControlDlg::OnPaint()
 	else
 	{
 		CDialog::OnPaint();
+		dc.Ellipse(PANCIRCLEPOS_X - PTCIRCLERADIUS, PANCIRCLEPOS_Y - PTCIRCLERADIUS, PANCIRCLEPOS_X + PTCIRCLERADIUS, PANCIRCLEPOS_Y + PTCIRCLERADIUS);
+		dc.Pie(CRect(PANCIRCLEPOS_X + PTCIRCLERADIUS / 2, PANCIRCLEPOS_Y - PTCIRCLERADIUS, PANCIRCLEPOS_X + 2.5 * PTCIRCLERADIUS, PANCIRCLEPOS_Y + PTCIRCLERADIUS),
+			CPoint(PANCIRCLEPOS_X + 1.5 * PTCIRCLERADIUS, PANCIRCLEPOS_Y + PTCIRCLERADIUS), CPoint(PANCIRCLEPOS_X + 1.5 * PTCIRCLERADIUS, PANCIRCLEPOS_Y- PTCIRCLERADIUS));
 	}
 }
 
@@ -749,7 +768,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 		
 		if (pDlg->currentProcMethod != 0)
 		{
-			double scale = 0.2;
+			double scale = 0.5;
 			Point screenCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
 			Point targetCntrPoint = Point(int(pData->GetWidth() * scale / 2), int(pData->GetHeight() * scale / 2));
 			
@@ -846,7 +865,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 				}
 
 			}
-			arrowedLine(m_copy, screenCntrPoint, targetCntrPoint, Scalar(0, 200, 0), 2);
+			//arrowedLine(m_copy, screenCntrPoint, targetCntrPoint, Scalar(0, 200, 0), 2);
 
 			pelcoDController.trackTarget(targetCntrPoint.x, targetCntrPoint.y, screenCntrPoint.x, screenCntrPoint.y);
 
@@ -864,6 +883,22 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			namedWindow("Output window", WINDOW_AUTOSIZE);
 			imshow("Output window", m_copy);
 			delete pRGBBuffer;
+
+			if (pDlg->m_bCapture)
+			{
+				if (cstrPixelFormat.Left(5) == _T("Bayer"))
+				{
+					_uint32_t nBufSize = pData->GetWidth() * pData->GetHeight() * 3;
+					_uint8_t* pnConvertData = new _uint8_t[nBufSize];
+					pDlg->m_pCamera->SetBayer(pnConvertData, nBufSize, pData, (ENeptuneBayerLayout)NEPTUNE_BAYER_GR_BG,
+						(ENeptuneBayerMethod)NEPTUNE_BAYER_METHOD_NEAREST, 0);
+					pDlg->ImageCapture(pData, pnConvertData, nBufSize, pData->GetWidth(), pData->GetHeight());
+				}
+				else 
+				{
+					pDlg->ImageCapture(pData);
+				}
+			}
 			waitKey(1);
 			
 		}
@@ -886,7 +921,7 @@ UINT CPTCameraControlDlg::AcquisitionThread(void* pParam)
 			}
 			else
 			{
-				Mat img = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
+				//Mat img = Mat(pData->GetHeight(), pData->GetWidth(), CV_8UC1, (uchar*)pData->GetBufferPtr());
 				pDlg->m_pDraw->DrawRawImage(pData);
 				pDlg->ImageCapture(pData);
 			}			
@@ -940,6 +975,13 @@ void CPTCameraControlDlg::OnCbnSelchangeComboCamera()
 		InitDlgCtrl();
 		return;
 	}
+	NEPTUNE_IMAGE_SIZE ImgSize;
+	ImgSize.nStartX = 8;
+	ImgSize.nStartY = 188;
+	ImgSize.nSizeX = 1920;
+	ImgSize.nSizeY = 1080;
+
+	m_pCamera->SetImageSize(ImgSize);
 
 	// Show the pixel format list information to combobox control.
 	UpdatePixelFormat();

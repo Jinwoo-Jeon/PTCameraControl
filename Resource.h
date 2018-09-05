@@ -22,7 +22,10 @@
 #define IDC_COMBO_PORT                  1008
 #define IDC_COMBO_SOURCE                1009
 #define IDC_COMBO_POLARITY              1010
+#define IDC_SLIDER_PANMOVE              1010
 #define IDC_COMBO_MODE                  1011
+#define IDC_SLIDER_PANMOVE2             1011
+#define IDC_SLIDER_TILTMOVE             1011
 #define IDC_EDIT_PARAMETER              1012
 #define IDC_CHECK_TRIGGER_ONOFF         1013
 #define IDC_BUTTON_SET_TRIGGER          1014
@@ -96,7 +99,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
